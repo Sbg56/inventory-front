@@ -31,7 +31,7 @@ export function AppBar({ open, onDrawerOpen }) {
         <AppBarStyled position="fixed" open={open}> {/* Используем переименованный компонент */}
             <Toolbar>
                 <Typography variant="h6" noWrap sx={{ flexGrow: 1 }} component="div">
-                    Агенство по продаже недвижимости
+                    Учёт товаров
                 </Typography>
                 <Button
                     color="inherit"

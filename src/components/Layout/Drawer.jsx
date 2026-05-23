@@ -51,7 +51,7 @@ export function Drawer({ open, onDrawerClose }) {
                 },
             }}
             variant="persistent"
-            anchor="right"
+            anchor="left"
             open={open}
         >
             <DrawerHeader>
