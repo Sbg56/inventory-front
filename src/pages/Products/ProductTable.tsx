@@ -1,47 +1,58 @@
-// ProductTable.tsx
-// @ts-ignore
-import React, { useMemo } from 'react';
-import { MaterialReactTable, type MRT_ColumnDef } from 'material-react-table';
-import { useQuery } from '@tanstack/react-query';
+import { type JSX } from "react";
+import { MaterialReactTable, useMaterialReactTable } from "material-react-table";
+import { Typography, Box, Button } from "@mui/material";
+import {useGetProducts} from "../../entities/products/model/useGetProducts";
+import {useProductsTableConfig} from "../../entities/products/ui/useProductsTableConfig";
+import Loading from "../../shared/ui/base/Loading";
+import ErrorBlock from "../../shared/ui/base/ErrorBlock";
 
-// Типизация согласно вашему ProductResponse
-interface Product {
-    id: number;
-    sku: string;
-    name: string;
-    categoryName: string;
-    supplierName: string;
-    unit: string;
-    isActive: boolean;
-}
+export default function ProductTable(): JSX.Element {
 
-const ProductTable = ({ categoryId = 1 }) => { // Пока захардкодим 1
+    const catId = 4;
 
-    const { data, isLoading, isError } = useQuery({
-        queryKey: ['products', categoryId],
-        queryFn: async () => {
-            const response = await fetch(`http://localhost:8082/api/v1/product/get-all/${categoryId}`);
-            return response.json();
-        },
+    const { data: productsData, isLoading, isError, error } =
+        useGetProducts().useGetProductsByCategory(catId, true);
+
+    const { columns, defaultMRTOptions } = useProductsTableConfig();
+
+    const table = useMaterialReactTable({
+        ...defaultMRTOptions,
+        columns,
+        data: productsData ?? [],
+
+        renderTopToolbarCustomActions: () => (
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                <Button variant='contained' color='primary'>
+                    Добавить продукт
+                </Button>
+            </Box>
+        ),
+
+        muiTableContainerProps: { sx: { height: '75vh' } },
+
+        muiTableBodyRowProps: ({ row }) => ({
+            sx: {
+                backgroundColor: !row.original.isActive ? '#f5f5f5' : '#ffffff',
+                textDecoration: !row.original.isActive ? 'line-through' : 'none',
+                color: !row.original.isActive ? '#9e9e9e' : 'inherit'
+            }
+        }),
     });
 
-    const columns = useMemo<MRT_ColumnDef<Product>[]>(() => [
-        { accessorKey: 'sku', header: 'SKU' },
-        { accessorKey: 'name', header: 'Название' },
-        { accessorKey: 'categoryName', header: 'Категория' },
-        { accessorKey: 'supplierName', header: 'Поставщик' },
-        { accessorKey: 'unit', header: 'Ед. изм.' },
-    ], []);
+    if (isLoading) {
+        return <Loading content={"Загрузка продуктов..."} />;
+    }
 
-    if (isLoading) return <div>Загрузка...</div>;
-    if (isError) return <div>Ошибка загрузки данных</div>;
+    if (isError) {
+        return (
+            <Box sx={{ p: 2 }}>
+                <ErrorBlock content={"Ошибка при загрузке продуктов!"} />
+                <Typography color="error" sx={{ mt: 1 }}>
+                    {error instanceof Error ? error.message : String(error)}
+                </Typography>
+            </Box>
+        );
+    }
 
-    return (
-        <MaterialReactTable
-            columns={columns}
-            data={data || []}
-        />
-    );
-};
-
-export default ProductTable;
+    return <MaterialReactTable table={table} />;
+}
