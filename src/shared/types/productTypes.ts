@@ -4,7 +4,9 @@ export interface ProductResponse {
     sku: string;
     name: string;
     description: string;
+    categoryId: number;
     categoryName: string;
+    supplierId: number;
     supplierName: string;
     unit: string;
     weight: number;
@@ -14,6 +16,7 @@ export interface ProductResponse {
     barcode: string;
     notes: string;
     isActive: boolean;
+    warehouseId: number;
     warehouseName: string;
 }
 

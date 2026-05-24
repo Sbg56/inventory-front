@@ -7,11 +7,34 @@ export const useGetProducts = () => {
 
     const queryClient = useQueryClient();
 
-    const useGetProductsByCategory = (catId: number) => {
+    const useGetActiveProductsByCategory = (catId: number, enabled: boolean) => {
         return useQuery({
             queryKey: ['products-by-category', catId],
             queryFn: async () => {
                 const response = await productApi.getActiveProductsByCategory(catId);
+                return response.data;
+            },
+            refetchOnWindowFocus: false,
+            refetchOnMount: false,
+            enabled: enabled,
+        });
+    };
+
+    const useUpdateProduct = (id: number) => {
+        return useMutation({
+            mutationFn: (updates: Partial<ProductRequest>) => productApi.updateProduct(id, updates),
+            onSuccess: () => {
+                queryClient.invalidateQueries({ queryKey: ['products-by-id', id] });
+                queryClient.invalidateQueries({ queryKey: ['products-by-category'] });
+            }
+        });
+    };
+
+    const useGetProductsById = (id: number) => {
+        return useQuery({
+            queryKey: ['products-by-id', id],
+            queryFn: async () => {
+                const response = await productApi.getProductById(id);
                 return response.data;
             },
             refetchOnWindowFocus: false,
@@ -32,7 +55,9 @@ export const useGetProducts = () => {
     };
 
     return {
-        useGetProductsByCategory,
+        useGetActiveProductsByCategory,
         useCreateProduct,
+        useGetProductsById,
+        useUpdateProduct,
     };
 };

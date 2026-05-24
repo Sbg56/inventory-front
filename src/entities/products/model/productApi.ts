@@ -15,5 +15,14 @@ export const productApi = {
 
     createProduct: async (productRequest: ProductRequest): Promise<AxiosResponse<ProductResponse>> => {
         return api.post(`/api/v1/product/post`, productRequest);
+    },
+
+    getProductById: async (id: number): Promise<AxiosResponse<ProductResponse>> => {
+        return api.get(`/api/v1/product/get-by-id/${id}`);
+    },
+
+    updateProduct: async (id: number, updates: Partial<ProductRequest>): Promise<AxiosResponse<ProductResponse>> => {
+        return api.patch(`/api/v1/product/patch/${id}`, updates);
     }
+
 };

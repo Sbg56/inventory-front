@@ -5,9 +5,9 @@ import {createTheme, ThemeProvider} from "@mui/material";
 const theme = createTheme({
     palette: {
         primary: {
-            main: '#cb6233',  // Тот самый мягкий матово-тыквенный цвет
-            dark: '#9e4720',  // Глубокий терракотовый для эффектов наведения (hover)
-            light: '#e08863', // Пастельно-оранжевый для легких акцентов
+            main: '#cb6233',
+            dark: '#9e4720',
+            light: '#e08863',
         },
     },
 });
