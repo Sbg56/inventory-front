@@ -10,5 +10,9 @@ export const categoryApi = {
 
     createCategory: async (categoryRequest: CategoryRequest): Promise<AxiosResponse<CategoryResponse>> => {
         return api.post('/api/v1/category/post', categoryRequest);
+    },
+
+    deleteCategory: async (id: number): Promise<AxiosResponse<string>> => {
+        return api.delete(`/api/v1/category/delete/${id}`);
     }
 };

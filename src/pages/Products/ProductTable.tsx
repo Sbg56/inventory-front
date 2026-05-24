@@ -6,19 +6,18 @@ import Loading from "../../shared/ui/base/Loading";
 import ErrorBlock from "../../shared/ui/base/ErrorBlock";
 import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
 import CreateProductModal from "../Products/CreateProductModal";
-import EditProductModal from "../Products/EditProductModal"; // Импортируем модалку редактирования
+import EditProductModal from "../Products/EditProductModal";
 import { useState } from "react";
-import { IconButton, Tooltip, Box, Typography, Menu, MenuItem, Divider } from '@mui/material';
+import { IconButton, Tooltip, Box, Typography, Menu, MenuItem, Divider, Snackbar, Alert } from '@mui/material';
 import { useCategories } from "../../entities/category/model/useCategories";
 import CreateCategoryModal from "../Categories/CreateCategoryModal";
 import AutoAwesomeMotionIcon from '@mui/icons-material/AutoAwesomeMotion';
-import EditIcon from '@mui/icons-material/Edit'; // Иконка редактирования
-import DeleteIcon from '@mui/icons-material/Delete'; // Иконка удаления
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { useNavigate } from "react-router-dom";
 import * as React from "react";
 import type { ProductResponse } from "../../shared/types/productTypes";
 
-// Выносим действия в отдельный компонент, чтобы безопасно использовать хук мутации для каждого ID
 const ProductRowActions = ({
                                product,
                                onEdit
@@ -30,12 +29,9 @@ const ProductRowActions = ({
     const updateMutation = useUpdateProduct(product.id);
 
     const handleDelete = (e: React.MouseEvent) => {
-        e.stopPropagation(); // Останавливаем всплытие, чтобы не срабатывал double click по строке
+        e.stopPropagation();
 
-        if (window.confirm(`Вы уверены, что хотите удалить (деактивировать) товар "${product.name}"?`)) {
-            // Передаем частичное обновление (смена активности на false)
-            updateMutation.mutate({ isActive: false } as never);
-        }
+        updateMutation.mutate({ isActive: false } as never);
     };
 
     return (
@@ -43,7 +39,7 @@ const ProductRowActions = ({
             <Tooltip title="Редактировать" arrow>
                 <IconButton
                     onClick={(e) => {
-                        e.stopPropagation(); // Предотвращаем переход по dblclick
+                        e.stopPropagation()
                         onEdit();
                     }}
                     size="small"
@@ -58,7 +54,7 @@ const ProductRowActions = ({
                     onClick={handleDelete}
                     size="small"
                     color="error"
-                    disabled={!product.isActive} // Если уже деактивирован, кнопка заблокирована
+                    disabled={!product.isActive}
                     sx={{ '&:hover': { backgroundColor: 'rgba(211, 47, 47, 0.08)' } }}
                 >
                     <DeleteIcon fontSize="small" />
@@ -69,20 +65,24 @@ const ProductRowActions = ({
 };
 
 export default function ProductTable(): JSX.Element {
-    const [currentCatId, setCurrentCatId] = useState<number>(4);
-    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-    // Состояния для редактирования продукта
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<ProductResponse | null>(null);
-
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const isMenuOpen = Boolean(anchorEl);
     const [isCreateCategoryModalOpen, setIsCreateCategoryModalOpen] = useState(false);
     const { columns, defaultMRTOptions } = useProductsTableConfig();
-    const { useGetAllCategories } = useCategories();
-    const { data: categories = [], isLoading: isCategoriesLoading } = useGetAllCategories();
     const navigate = useNavigate();
+    const [currentCatId, setCurrentCatId] = useState<number>(4);
+
+    const { useGetAllCategories, useDeleteCategory } = useCategories();
+    const { data: categories = [], isLoading: isCategoriesLoading } = useGetAllCategories();
+    const deleteCategoryMutation = useDeleteCategory();
+
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState("");
+    const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">("success");
 
     const { data: productsData, isLoading, isError, error } =
         useGetProducts().useGetActiveProductsByCategory(currentCatId, true);
@@ -98,17 +98,44 @@ export default function ProductTable(): JSX.Element {
         setIsCreateCategoryModalOpen(true);
     };
 
+    const handleDeleteCategory = (e: React.MouseEvent, id: number) => {
+        e.stopPropagation();
+
+        deleteCategoryMutation.mutate(id, {
+            onSuccess: () => {
+
+                setSnackbarMessage("Категория успешно удалена");
+                setSnackbarSeverity("success");
+                setSnackbarOpen(true);
+
+                if (currentCatId === id) {
+                    setCurrentCatId(4);
+                }
+            },
+            onError: (error: any) => {
+                let errorMessage = "Произошла ошибка при удалении категории";
+
+                // Проверяем, вернул ли бэкенд статус 409 (Конфликт)
+                if (error.response?.status === 409) {
+                    errorMessage = error.response?.data?.message
+                    || typeof error.response?.data === 'string' ? error.response.data : "Категорию нельзя удалить, так как в ней содержатся продукты.";
+                }
+
+                setSnackbarMessage(errorMessage);
+                setSnackbarSeverity("error");
+                setSnackbarOpen(true);
+            }
+        });
+    };
+
     const table = useMaterialReactTable({
         ...defaultMRTOptions,
         columns,
         data: productsData || [],
 
-        // 1. Включаем отображение колонки действий
         enableRowActions: true,
-        // Позиционируем колонку действий в самом конце таблицы справа
         positionActionsColumn: 'last',
 
-        // Настройка заголовка колонки действий
         displayColumnDefOptions: {
             'mrt-row-actions': {
                 header: 'Действие',
@@ -116,7 +143,6 @@ export default function ProductTable(): JSX.Element {
             },
         },
 
-        // 2. Рендерим кастомный компонент действий для каждой строки
         renderRowActions: ({ row }) => (
             <ProductRowActions
                 product={row.original}
@@ -170,14 +196,36 @@ export default function ProductTable(): JSX.Element {
                                 key={category.id}
                                 onClick={() => handleCategorySelect(category.id)}
                                 sx={{
-                                    fontSize: '14px', mx: 0.5, my: 0.2, borderRadius: '6px',
+                                    fontSize: '14px',
+                                    mx: 0.5,
+                                    my: 0.2,
+                                    borderRadius: '6px',
                                     color: isSelected ? '#CB673C' : 'inherit',
                                     fontWeight: isSelected ? 600 : 400,
                                     backgroundColor: isSelected ? 'rgba(203, 103, 60, 0.08)' : 'transparent',
                                     '&:hover': { backgroundColor: isSelected ? 'rgba(203, 103, 60, 0.15)' : 'rgba(0,0,0,0.04)' },
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center'
                                 }}
                             >
                                 {category.name}
+
+                                <Tooltip title="Удалить категорию" arrow>
+                                    <IconButton
+                                        size="small"
+                                        onClick={(e) => handleDeleteCategory(e, category.id)}
+                                        disabled={deleteCategoryMutation.isPending}
+                                        sx={{
+                                            ml: 2,
+                                            p: 0.5,
+                                            color: 'error.main',
+                                            '&:hover': { backgroundColor: 'rgba(211, 47, 47, 0.08)' }
+                                        }}
+                                    >
+                                        <DeleteIcon fontSize="small" />
+                                    </IconButton>
+                                </Tooltip>
                             </MenuItem>
                         );
                     })}
@@ -213,6 +261,7 @@ export default function ProductTable(): JSX.Element {
         }),
 
         muiTableContainerProps: { sx: { height: '75vh' } },
+
     });
 
     if (isLoading) {
@@ -234,12 +283,8 @@ export default function ProductTable(): JSX.Element {
         <>
             <MaterialReactTable table={table} />
 
-            <CreateProductModal
-                open={isCreateModalOpen}
-                onClose={() => setIsCreateModalOpen(false)}
-            />
+            <CreateProductModal open={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} />
 
-            {/* Включаем модальное окно редактирования, передавая выбранный продукт */}
             {selectedProduct && (
                 <EditProductModal
                     open={isEditModalOpen}
@@ -252,6 +297,21 @@ export default function ProductTable(): JSX.Element {
             )}
 
             <CreateCategoryModal open={isCreateCategoryModalOpen} onClose={() => setIsCreateCategoryModalOpen(false)} />
+
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={4000}
+                onClose={() => setSnackbarOpen(false)}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            >
+                <Alert
+                    onClose={() => setSnackbarOpen(false)}
+                    severity={snackbarSeverity}
+                    sx={{ width: '100%', boxShadow: '0px 4px 12px rgba(0,0,0,0.1)' }}
+                >
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
         </>
     );
 }

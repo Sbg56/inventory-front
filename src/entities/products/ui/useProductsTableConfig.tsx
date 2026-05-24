@@ -50,7 +50,7 @@ export const useProductsTableConfig = () => {
                 header: 'Штрих-код',
             },
             {
-                accessorKey: "location",
+                accessorKey: "warehouseName",
                 header: 'Место хранения',
             },
             {
