@@ -5,7 +5,7 @@ import ProductTable from "./ProductTable";
 export default function Products() {
     return (
         <>
-            <Layout titlePage={"Товары"}>
+            <Layout titlePage={"Товары"} >
                 <ProductTable />
             </Layout>
         </>

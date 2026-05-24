@@ -54,7 +54,6 @@ export const useProductsTableConfig = () => {
                 header: 'Место хранения',
             },
             {
-
                 accessorKey: "stockInfo",
                 header: 'Остатки (Мин / Макс)',
                 Cell: ({ row }) => (

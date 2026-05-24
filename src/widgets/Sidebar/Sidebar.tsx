@@ -15,7 +15,6 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import ListSubheader from '@mui/material/ListSubheader';
 import type {topMenuItems, bottomMenuItems} from "./sidebarMenuType.ts";
-import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import HomeIcon from '@mui/icons-material/Home';
 import InfoIcon from '@mui/icons-material/Info';
 import {useLocalStorage} from "../../shared/hook/useLocalStorage";
@@ -139,6 +138,8 @@ export default function Sidebar(props: sidebarProps) {
         <Box sx={{display: 'flex'}}>
             <AppBar position="fixed" open={isMenuOpen} sx={{
                 borderRadius: 4,
+                backgroundColor: '#CB673C',
+                boxShadow: '0px 2px 8px rgba(203, 103, 60, 0.15)',
             }}>
                 <Toolbar>
                     <IconButton
@@ -201,8 +202,24 @@ export default function Sidebar(props: sidebarProps) {
                                 return (
                                     <ListItem key={item.id} disablePadding
                                               sx={{display: 'flex', alignItems: 'flex-end'}}>
-                                        <ListItemButton disabled={!item.enabled} component={Link} to={item.path} selected={selected}>
-                                            <ListItemIcon sx={{color: selected ? "primary.main" : "inherit.main"}}>
+                                        <ListItemButton
+                                            disabled={!item.enabled}
+                                            component={Link}
+                                            to={item.path}
+                                            selected={selected}
+                                            sx={{
+                                                minHeight: 48,
+                                                px: 2.5,
+                                                '&.Mui-selected': {
+                                                    backgroundColor: 'rgba(203, 103, 60, 0.12)',
+                                                    '&:hover': {
+                                                        backgroundColor: 'rgba(203, 103, 60, 0.18)',
+                                                    },
+                                                },
+                                            }}
+                                        >
+                                            {/* Если пункт выбран — красим иконку в наш фирменный Pumpkin Patch */}
+                                            <ListItemIcon sx={{ color: selected ? "#CB673C" : "inherit.main" }}>
                                                 {item.icon}
                                             </ListItemIcon>
                                             <ListItemText
@@ -219,10 +236,6 @@ export default function Sidebar(props: sidebarProps) {
                             sx={{width: '100%', bgcolor: 'background.paper'}}
                             component="nav"
                             aria-labelledby="nested-list-subheader"
-                            subheader={
-                                <ListSubheader component="div" id="nested-list-subheader">
-                                    {isMenuOpen ? "Название раздела" : ""}
-                                </ListSubheader>}
                         >
                             {bottomMenuItems.map((item) => {
                                 const selected = isActive(item.path)

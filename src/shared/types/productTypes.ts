@@ -11,10 +11,10 @@ export interface ProductResponse {
     volume: number;
     minStock: number;
     maxStock: number;
-    location: string;
     barcode: string;
     notes: string;
     isActive: boolean;
+    warehouseName: string;
 }
 
 export interface ProductRequest {
@@ -26,10 +26,7 @@ export interface ProductRequest {
     unit: string;
     weight: number;
     volume: number;
-    minStock: number;
-    maxStock: number;
-    location: string;
     barcode: string;
     notes: string;
-    isActive: boolean;
+    warehouseId: number;
 }
