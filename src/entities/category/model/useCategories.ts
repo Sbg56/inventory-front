@@ -41,9 +41,23 @@ export const useCategories = () => {
         });
     };
 
+    const useUpdateCategory = () => {
+        return useMutation({
+            // Принимаем объект с id и полями для обновления
+            mutationFn: async ({ id, updates }: { id: number; updates: Partial<CategoryRequest> }) => {
+                const response = await categoryApi.updateCategory(id, updates);
+                return response.data;
+            },
+            onSuccess: () => {
+                queryClient.invalidateQueries({ queryKey: ['categories-all'] });
+            }
+        });
+    };
+
     return {
         useGetAllCategories,
         useCreateCategory,
-        useDeleteCategory, // Экспортируем новый хук наружу
+        useDeleteCategory,
+        useUpdateCategory,
     };
 };

@@ -14,5 +14,9 @@ export const categoryApi = {
 
     deleteCategory: async (id: number): Promise<AxiosResponse<string>> => {
         return api.delete(`/api/v1/category/delete/${id}`);
+    },
+
+    updateCategory: async (id: number, updates: Partial<CategoryRequest>): Promise<AxiosResponse<CategoryResponse>> => {
+        return api.patch(`/api/v1/category/patch/${id}`, updates);
     }
 };

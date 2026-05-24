@@ -17,13 +17,17 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { useNavigate } from "react-router-dom";
 import * as React from "react";
 import type { ProductResponse } from "../../shared/types/productTypes";
+import EditCategoryModal from "../Categories/EditCategoryModal";
+import type { CategoryResponse } from "../../shared/types/categoryTypes";
 
 const ProductRowActions = ({
                                product,
-                               onEdit
+                               onEdit,
+                               showNotification
                            }: {
     product: ProductResponse;
     onEdit: () => void;
+    showNotification: (msg: string, severity: "success" | "error") => void;
 }) => {
     const { useUpdateProduct } = useGetProducts();
     const updateMutation = useUpdateProduct(product.id);
@@ -31,7 +35,14 @@ const ProductRowActions = ({
     const handleDelete = (e: React.MouseEvent) => {
         e.stopPropagation();
 
-        updateMutation.mutate({ isActive: false } as never);
+        updateMutation.mutate({ isActive: false } as never, {
+            onSuccess: () => {
+                showNotification(`Товар "${product.name}" успешно удален`, "success");
+            },
+            onError: () => {
+                showNotification(`Ошибка при удалении товара "${product.name}"`, "error");
+            }
+        });
     };
 
     return (
@@ -79,6 +90,9 @@ export default function ProductTable(): JSX.Element {
     const { useGetAllCategories, useDeleteCategory } = useCategories();
     const { data: categories = [], isLoading: isCategoriesLoading } = useGetAllCategories();
     const deleteCategoryMutation = useDeleteCategory();
+    const [contextMenu, setContextMenu] = useState<{ mouseX: number; mouseY: number } | null>(null);
+    const [selectedContextMenuCategory, setSelectedContextMenuCategory] = useState<CategoryResponse | null>(null);
+    const [isEditCategoryModalOpen, setIsEditCategoryModalOpen] = useState(false);
 
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -98,12 +112,33 @@ export default function ProductTable(): JSX.Element {
         setIsCreateCategoryModalOpen(true);
     };
 
-    const handleDeleteCategory = (e: React.MouseEvent, id: number) => {
-        e.stopPropagation();
+    const handleCategoryContextMenu = (event: React.MouseEvent, category: CategoryResponse) => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        setSelectedContextMenuCategory(category);
+        setContextMenu(
+            contextMenu === null
+                ? {
+                    mouseX: event.clientX + 2,
+                    mouseY: event.clientY - 6,
+                }
+                : null,
+        );
+    };
+
+    const handleContextMenuClose = () => {
+        setContextMenu(null);
+    };
+
+    const handleDeleteCategoryClick = () => {
+        if (!selectedContextMenuCategory) return;
+
+        const id = selectedContextMenuCategory.id;
+        handleContextMenuClose();
 
         deleteCategoryMutation.mutate(id, {
             onSuccess: () => {
-
                 setSnackbarMessage("Категория успешно удалена");
                 setSnackbarSeverity("success");
                 setSnackbarOpen(true);
@@ -114,18 +149,21 @@ export default function ProductTable(): JSX.Element {
             },
             onError: (error: any) => {
                 let errorMessage = "Произошла ошибка при удалении категории";
-
-                // Проверяем, вернул ли бэкенд статус 409 (Конфликт)
                 if (error.response?.status === 409) {
                     errorMessage = error.response?.data?.message
                     || typeof error.response?.data === 'string' ? error.response.data : "Категорию нельзя удалить, так как в ней содержатся продукты.";
                 }
-
                 setSnackbarMessage(errorMessage);
                 setSnackbarSeverity("error");
                 setSnackbarOpen(true);
             }
         });
+    };
+
+    const showNotification = (msg: string, severity: "success" | "error") => {
+        setSnackbarMessage(msg);
+        setSnackbarSeverity(severity);
+        setSnackbarOpen(true);
     };
 
     const table = useMaterialReactTable({
@@ -150,6 +188,7 @@ export default function ProductTable(): JSX.Element {
                     setSelectedProduct(row.original);
                     setIsEditModalOpen(true);
                 }}
+                showNotification={showNotification} // <--- ВОТ ЭТА СТРОЧКА
             />
         ),
 
@@ -195,37 +234,16 @@ export default function ProductTable(): JSX.Element {
                             <MenuItem
                                 key={category.id}
                                 onClick={() => handleCategorySelect(category.id)}
+                                onContextMenu={(e) => handleCategoryContextMenu(e, category)} // <--- СЮДА ДОБАВЛЯЕМ ПРАВЫЙ КЛИК
                                 sx={{
-                                    fontSize: '14px',
-                                    mx: 0.5,
-                                    my: 0.2,
-                                    borderRadius: '6px',
+                                    fontSize: '14px', mx: 0.5, my: 0.2, borderRadius: '6px',
                                     color: isSelected ? '#CB673C' : 'inherit',
                                     fontWeight: isSelected ? 600 : 400,
                                     backgroundColor: isSelected ? 'rgba(203, 103, 60, 0.08)' : 'transparent',
                                     '&:hover': { backgroundColor: isSelected ? 'rgba(203, 103, 60, 0.15)' : 'rgba(0,0,0,0.04)' },
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center'
                                 }}
                             >
                                 {category.name}
-
-                                <Tooltip title="Удалить категорию" arrow>
-                                    <IconButton
-                                        size="small"
-                                        onClick={(e) => handleDeleteCategory(e, category.id)}
-                                        disabled={deleteCategoryMutation.isPending}
-                                        sx={{
-                                            ml: 2,
-                                            p: 0.5,
-                                            color: 'error.main',
-                                            '&:hover': { backgroundColor: 'rgba(211, 47, 47, 0.08)' }
-                                        }}
-                                    >
-                                        <DeleteIcon fontSize="small" />
-                                    </IconButton>
-                                </Tooltip>
                             </MenuItem>
                         );
                     })}
@@ -312,6 +330,43 @@ export default function ProductTable(): JSX.Element {
                     {snackbarMessage}
                 </Alert>
             </Snackbar>
+
+            <EditCategoryModal
+                open={isEditCategoryModalOpen}
+                onClose={() => setIsEditCategoryModalOpen(false)}
+                category={selectedContextMenuCategory}
+            />
+
+            <Menu
+                open={contextMenu !== null}
+                onClose={handleContextMenuClose}
+                anchorReference="anchorPosition"
+                anchorPosition={
+                    contextMenu !== null
+                        ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
+                        : undefined
+                }
+
+                sx={{ zIndex: 1400 }}
+                slotProps={{
+                    paper: {
+                        sx: { minWidth: 150, borderRadius: '8px', boxShadow: '0px 4px 16px rgba(0,0,0,0.15)' }
+                    }
+                }}
+            >
+                <MenuItem onClick={() => {
+                    handleContextMenuClose();
+                    setIsEditCategoryModalOpen(true);
+                }}>
+                    Редактировать
+                </MenuItem>
+                <MenuItem
+                    onClick={handleDeleteCategoryClick}
+                    sx={{ color: 'error.main' }}
+                >
+                    Удалить
+                </MenuItem>
+            </Menu>
         </>
     );
 }

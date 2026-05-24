@@ -40,18 +40,22 @@ export const useProductsTableConfig = () => {
             {
                 accessorKey: "categoryName",
                 header: 'Категория',
+                enableSorting: true,
             },
             {
                 accessorKey: "supplierName",
                 header: 'Поставщик',
+                enableSorting: true,
             },
             {
                 accessorKey: "barcode",
                 header: 'Штрих-код',
+                enableSorting: true,
             },
             {
                 accessorKey: "warehouseName",
                 header: 'Место хранения',
+                enableSorting: true,
             },
             {
                 accessorKey: "stockInfo",
