@@ -70,6 +70,8 @@ export default function SalePage() {
     const saleOrderMutation = useCreateSaleOrder();
 
     const [documentNumber, setDocumentNumber] = useState("");
+    const [customerName, setCustomerName] = useState("");
+    const [notes, setNotes] = useState("");
     const [warehouseId, setWarehouseId] = useState<number | "">("");
     const [lines, setLines] = useState<SaleLineItem[]>([
         { id: ++lineCounter, productId: "", quantity: "" },
@@ -131,7 +133,12 @@ export default function SalePage() {
         }
 
         saleOrderMutation.mutate(
-            { documentNumber, fromWarehouseId: warehouseId as number, items },
+            {
+                documentNumber,
+                customerName: customerName.trim() || undefined,
+                notes: notes.trim() || undefined,
+                fromWarehouseId: warehouseId as number,
+                items },
             {
                 onSuccess: (data) => {
                     showNotification(
@@ -140,6 +147,8 @@ export default function SalePage() {
                     );
                     setDocumentNumber("");
                     setWarehouseId("");
+                    setCustomerName("");   // ← добавить
+                    setNotes("");
                     setLines([{ id: ++lineCounter, productId: "", quantity: "" }]);
                     setCurrentCatId("");
                 },
@@ -189,6 +198,31 @@ export default function SalePage() {
                                             placeholder="Например: ПРД-2024-001"
                                         />
                                     </Grid>
+
+                                    <Grid item xs={12} md={6}>
+                                        <TextField
+                                            label="Покупатель"
+                                            value={customerName}
+                                            onChange={(e) => setCustomerName(e.target.value)}
+                                            fullWidth
+                                            size="small"
+                                            placeholder="Например: ООО Ромашка"
+                                        />
+                                    </Grid>
+
+                                    <Grid item xs={12}>
+                                        <TextField
+                                            label="Примечание"
+                                            value={notes}
+                                            onChange={(e) => setNotes(e.target.value)}
+                                            fullWidth
+                                            size="small"
+                                            multiline
+                                            rows={2}
+                                            placeholder="Необязательное примечание к заказу"
+                                        />
+                                    </Grid>
+
                                     <Grid item xs={12} md={6}>
                                         <FormControl fullWidth required size="small">
                                             <InputLabel>Склад отгрузки</InputLabel>
@@ -361,6 +395,8 @@ export default function SalePage() {
                                     onClick={() => {
                                         setDocumentNumber("");
                                         setWarehouseId("");
+                                        setCustomerName("");
+                                        setNotes("");
                                         setLines([{ id: ++lineCounter, productId: "", quantity: "" }]);
                                         setCurrentCatId("");
                                     }}

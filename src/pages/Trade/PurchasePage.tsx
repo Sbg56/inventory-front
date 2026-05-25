@@ -75,6 +75,7 @@ export default function PurchasePage() {
 
     const [documentNumber, setDocumentNumber] = useState("");
     const [warehouseId, setWarehouseId] = useState<number | "">("");
+    const [purchaseNotes, setPurchaseNotes] = useState("");
     const [supplierId, setSupplierId] = useState<number | "">("");
     const [lines, setLines] = useState<PurchaseLineItem[]>([
         { id: ++lineCounter, productId: "", quantity: "", price: "" },
@@ -126,6 +127,7 @@ export default function PurchasePage() {
     const handleReset = () => {
         setDocumentNumber("");
         setWarehouseId("");
+        setPurchaseNotes("");
         setSupplierId("");
         setLines([{ id: ++lineCounter, productId: "", quantity: "", price: "" }]);
         setCurrentCatId("");
@@ -160,6 +162,7 @@ export default function PurchasePage() {
             {
                 documentNumber,
                 warehouseId: warehouseId as number,
+                notes: purchaseNotes.trim() || undefined,
                 supplierId: supplierId !== "" ? (supplierId as number) : undefined,
                 items,
             },
@@ -221,6 +224,16 @@ export default function PurchasePage() {
                                             required
                                             size="small"
                                             placeholder="Например: ЗАК-2024-001"
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12}>
+                                        <TextField
+                                            label="Примечание"
+                                            value={purchaseNotes}
+                                            onChange={e => setPurchaseNotes(e.target.value)}
+                                            fullWidth size="small"
+                                            multiline rows={2}
+                                            placeholder="Необязательное примечание к закупке"
                                         />
                                     </Grid>
                                     <Grid item xs={12} md={4}>

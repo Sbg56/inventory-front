@@ -91,6 +91,8 @@ export default function TradePage() {
 
     // sale form state
     const [saleDocNumber, setSaleDocNumber] = useState("");
+    const [saleCustomerName, setSaleCustomerName] = useState("");
+    const [saleNotes, setSaleNotes] = useState("");
     const [saleWarehouseId, setSaleWarehouseId] = useState<number | "">("");
     const [saleLines, setSaleLines] = useState<SaleLineItem[]>([newSaleLine()]);
 
@@ -99,6 +101,7 @@ export default function TradePage() {
     const [purchaseWarehouseId, setPurchaseWarehouseId] = useState<number | "">("");
     const [purchaseSupplierId, setPurchaseSupplierId] = useState<number | "">("");
     const [purchaseLines, setPurchaseLines] = useState<PurchaseLineItem[]>([newPurchaseLine()]);
+    const [purchaseNotes, setPurchaseNotes] = useState("");
 
     // snackbar
     const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -123,6 +126,8 @@ export default function TradePage() {
     const handleSaleReset = () => {
         setSaleDocNumber("");
         setSaleWarehouseId("");
+        setSaleCustomerName("");
+        setSaleNotes("");
         setSaleLines([newSaleLine()]);
         setCurrentCatId("");
     };
@@ -137,7 +142,12 @@ export default function TradePage() {
         if (items.length === 0) { showNotification("Добавьте хотя бы одну позицию", "error"); return; }
 
         saleOrderMutation.mutate(
-            { documentNumber: saleDocNumber, fromWarehouseId: saleWarehouseId as number, items },
+            {
+                documentNumber: saleDocNumber,
+                customerName: saleCustomerName.trim() || undefined,
+                notes: saleNotes.trim() || undefined,
+                fromWarehouseId: saleWarehouseId as number,
+                items },
             {
                 onSuccess: (data) => {
                     showNotification(`Заказ №${data.documentNumber} оформлен. Сумма: ${data.totalAmount?.toLocaleString("ru-RU")} ₽`, "success");
@@ -157,6 +167,7 @@ export default function TradePage() {
     const handlePurchaseReset = () => {
         setPurchaseDocNumber("");
         setPurchaseWarehouseId("");
+        setPurchaseNotes("");
         setPurchaseSupplierId("");
         setPurchaseLines([newPurchaseLine()]);
         setCurrentCatId("");
@@ -175,6 +186,7 @@ export default function TradePage() {
             {
                 documentNumber: purchaseDocNumber,
                 warehouseId: purchaseWarehouseId as number,
+                notes: purchaseNotes.trim() || undefined,
                 supplierId: purchaseSupplierId !== "" ? purchaseSupplierId as number : undefined,
                 items,
             },
@@ -243,9 +255,7 @@ export default function TradePage() {
     );
 
     const isSale = mode === "sale";
-    const isPending = isSale ? saleOrderMutation.isPending : purchaseOrderMutation.isPending;
-
-    // ─────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────
 
     return (
         <Layout titlePage="Торговые операции">
@@ -315,7 +325,7 @@ export default function TradePage() {
 
                             <Grid item xs={12}>
                                 <Paper variant="outlined" sx={sectionPaper}>
-                                    <SectionTitle>Реквизиты документа</SectionTitle>
+                                    <SectionTitle>Обязательные реквизиты</SectionTitle>
                                     <Grid container spacing={2}>
                                         <Grid item xs={12} md={6}>
                                             <TextField
@@ -325,7 +335,7 @@ export default function TradePage() {
                                             />
                                         </Grid>
                                         <Grid item xs={12} md={6}>
-                                            <FormControl fullWidth required size="small">
+                                            <FormControl fullWidth required size="small" sx={{ minWidth: 200, width: '100%' }}>
                                                 <InputLabel>Склад отгрузки</InputLabel>
                                                 <Select
                                                     value={saleWarehouseId}
@@ -337,6 +347,36 @@ export default function TradePage() {
                                             </FormControl>
                                         </Grid>
                                     </Grid>
+
+                                </Paper>
+                            </Grid>
+
+                            <Grid item xs={12}>
+                                <Paper variant="outlined" sx={sectionPaper}>
+                                    <SectionTitle>Реквизиты документа</SectionTitle>
+                                    <Grid container spacing={2}>
+                                        <Grid item xs={12} md={6}>
+                                            <TextField
+                                                label="Покупатель"
+                                                value={saleCustomerName}
+                                                onChange={e => setSaleCustomerName(e.target.value)}
+                                                fullWidth size="small"
+                                                placeholder="Например: ООО Ромашка"
+                                            />
+                                        </Grid>
+
+                                        <Grid item xs={12}>
+                                            <TextField
+                                                label="Примечание"
+                                                value={saleNotes}
+                                                onChange={e => setSaleNotes(e.target.value)}
+                                                fullWidth size="small"
+                                                multiline rows={2}
+                                                placeholder="Необязательное примечание к заказу"
+                                            />
+                                        </Grid>
+                                    </Grid>
+
                                 </Paper>
                             </Grid>
 
@@ -433,7 +473,7 @@ export default function TradePage() {
                                             />
                                         </Grid>
                                         <Grid item xs={12} md={4}>
-                                            <FormControl fullWidth required size="small">
+                                            <FormControl fullWidth required size="small" sx={{ minWidth: 200, width: '100%' }}>
                                                 <InputLabel>Склад приемки</InputLabel>
                                                 <Select
                                                     value={purchaseWarehouseId}
@@ -445,7 +485,7 @@ export default function TradePage() {
                                             </FormControl>
                                         </Grid>
                                         <Grid item xs={12} md={4}>
-                                            <FormControl fullWidth size="small">
+                                            <FormControl fullWidth size="small" sx={{ minWidth: 200, width: '100%' }}>
                                                 <InputLabel>Поставщик</InputLabel>
                                                 <Select
                                                     value={purchaseSupplierId}
@@ -456,6 +496,24 @@ export default function TradePage() {
                                                     {suppliers.map(sup => <MenuItem key={sup.id} value={sup.id}>{sup.name}</MenuItem>)}
                                                 </Select>
                                             </FormControl>
+                                        </Grid>
+                                    </Grid>
+                                </Paper>
+                            </Grid>
+
+                            <Grid item xs={12}>
+                                <Paper variant="outlined" sx={sectionPaper}>
+                                    <SectionTitle>Реквизиты документа</SectionTitle>
+                                    <Grid container spacing={2}>
+                                        <Grid item xs={12}>
+                                            <TextField
+                                                label="Примечание"
+                                                value={purchaseNotes}
+                                                onChange={e => setPurchaseNotes(e.target.value)}
+                                                fullWidth size="small"
+                                                multiline rows={2}
+                                                placeholder="Необязательное примечание к закупке"
+                                            />
                                         </Grid>
                                     </Grid>
                                 </Paper>
