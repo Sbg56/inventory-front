@@ -133,8 +133,8 @@ export default function Sidebar(props: sidebarProps) {
     const isActive = (path: string) => location.pathname === path;
 
     const topMenuItem: topMenuItems[] = [
-        {id: 4, path: "/2",
-            label: "Заказы",
+        {id: 4, path: "/trade",
+            label: "Учёт",
             icon: <DescriptionIcon/>,
             enabled: true},
         {id: 1, path: "/",
@@ -145,7 +145,7 @@ export default function Sidebar(props: sidebarProps) {
             label: "Склады",
             icon: <WarehouseIcon/>,
             enabled: true},
-        {id: 5, path: "/3",
+        {id: 5, path: "/stockMovement",
             label: "Движение товаров",
             icon: <TrolleyIcon/>,
             enabled: true},

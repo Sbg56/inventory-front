@@ -58,6 +58,12 @@ export const useProductsTableConfig = () => {
                 enableSorting: true,
             },
             {
+                accessorKey: "currentStock",
+                header: 'Количество',
+                enableSorting: true,
+            },
+
+            {
                 accessorKey: "stockInfo",
                 header: 'Остатки (Мин / Макс)',
                 Cell: ({ row }) => (

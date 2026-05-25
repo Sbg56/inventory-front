@@ -13,6 +13,7 @@ export interface ProductResponse {
     volume: number;
     minStock: number;
     maxStock: number;
+    currentStock: number;
     barcode: string;
     notes: string;
     isActive: boolean;
