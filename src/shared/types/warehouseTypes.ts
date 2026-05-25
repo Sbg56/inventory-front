@@ -9,6 +9,6 @@ export interface WarehouseResponse {
 export interface WarehouseRequest {
     name: string;
     address: string;
-    employee: number;
+    employeeId: number;
     description: string;
 }

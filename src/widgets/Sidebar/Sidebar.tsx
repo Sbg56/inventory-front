@@ -149,7 +149,7 @@ export default function Sidebar(props: sidebarProps) {
             label: "Движение товаров",
             icon: <TrolleyIcon/>,
             enabled: true},
-        {id: 3, path: "/1",
+        {id: 3, path: "/suppliers",
             label: "Поставщики",
             icon: <LocalShippingIcon/>,
             enabled: true},
