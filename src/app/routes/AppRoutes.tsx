@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Products from "../../pages/Products/Products";
 import ProductDetailsPage from "../../pages/Products/ProductDetailsPage";
+import Warehouses from "../../pages/Warehouses/Warehouses";
 
 export default function AppRoutes() {
     return (
@@ -8,6 +9,7 @@ export default function AppRoutes() {
             <Routes>
                 <Route path="/" element={<Products />} />*
                 <Route path="/products/:id" element={<ProductDetailsPage />} />
+                <Route path="/warehouses" element={<Warehouses />} />
             </Routes>
         </BrowserRouter>
     );

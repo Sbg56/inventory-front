@@ -15,10 +15,15 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import ListSubheader from '@mui/material/ListSubheader';
 import type {topMenuItems, bottomMenuItems} from "./sidebarMenuType.ts";
-import HomeIcon from '@mui/icons-material/Home';
+import HistoryIcon from '@mui/icons-material/History';
 import InfoIcon from '@mui/icons-material/Info';
 import {useLocalStorage} from "../../shared/hook/useLocalStorage";
-
+import WarehouseIcon from '@mui/icons-material/Warehouse';
+import CategoryIcon from '@mui/icons-material/Category';
+import DescriptionIcon from '@mui/icons-material/Description';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import PeopleIcon from '@mui/icons-material/People';
+import TrolleyIcon from '@mui/icons-material/Trolley';
 
 const drawerWidth = 320;
 
@@ -128,9 +133,33 @@ export default function Sidebar(props: sidebarProps) {
     const isActive = (path: string) => location.pathname === path;
 
     const topMenuItem: topMenuItems[] = [
+        {id: 4, path: "/2",
+            label: "Заказы",
+            icon: <DescriptionIcon/>,
+            enabled: true},
         {id: 1, path: "/",
             label: "Товары",
-            icon: <HomeIcon/>,
+            icon: <CategoryIcon/>,
+            enabled: true},
+        {id: 2, path: "/warehouses",
+            label: "Склады",
+            icon: <WarehouseIcon/>,
+            enabled: true},
+        {id: 5, path: "/3",
+            label: "Движение товаров",
+            icon: <TrolleyIcon/>,
+            enabled: true},
+        {id: 3, path: "/1",
+            label: "Поставщики",
+            icon: <LocalShippingIcon/>,
+            enabled: true},
+        {id: 6, path: "/4",
+            label: "Сотрудники",
+            icon: <PeopleIcon/>,
+            enabled: true},
+        {id: 7, path: "/5",
+            label: "История",
+            icon: <HistoryIcon/>,
             enabled: true},
     ]
 
@@ -218,7 +247,6 @@ export default function Sidebar(props: sidebarProps) {
                                                 },
                                             }}
                                         >
-                                            {/* Если пункт выбран — красим иконку в наш фирменный Pumpkin Patch */}
                                             <ListItemIcon sx={{ color: selected ? "#CB673C" : "inherit.main" }}>
                                                 {item.icon}
                                             </ListItemIcon>
