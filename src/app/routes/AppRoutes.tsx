@@ -5,6 +5,7 @@ import Warehouses from "../../pages/Warehouses/Warehouses";
 import Suppliers from "../../pages/Suppliers/Suppliers";
 import StockMovements from "../../pages/StockMovement/StockMovements";
 import TradePage from "../../pages/Trade/TradePage";
+import Employees from "../../pages/Employee/Employees";
 
 export default function AppRoutes() {
     return (
@@ -16,6 +17,7 @@ export default function AppRoutes() {
                 <Route path="/suppliers" element={<Suppliers />} />
                 <Route path="/stockMovement" element={<StockMovements />} />
                 <Route path="/trade" element={<TradePage />} />
+                <Route path="/employees" element={<Employees />} />
 
             </Routes>
         </BrowserRouter>

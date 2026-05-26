@@ -4,32 +4,32 @@ import { MaterialReactTable, useMaterialReactTable } from "material-react-table"
 import { Box, Typography, IconButton, Tooltip, Snackbar, Alert } from "@mui/material";
 import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
 import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import { useWarehouses } from "../../entities/warehouseApi/model/useWarehouses";
-import { useWarehousesTableConfig } from "../../entities/warehouseApi/ui/useWarehousesTableConfig";
+import PersonOffIcon from "@mui/icons-material/PersonOff";
 import Loading from "../../shared/ui/base/Loading";
 import ErrorBlock from "../../shared/ui/base/ErrorBlock";
-import CreateWarehouseModal from "../Warehouses/CreateWarehouseModal";
-import EditWarehouseModal from "../Warehouses/EditWarehouseModal";
-import type { WarehouseResponse } from "../../shared/types/warehouseTypes";
+import type { EmployeeResponse } from "../../shared/types/employeeTypes";
+import { useEmployees } from "../../entities/employees/model/useEmployees";
+import { useEmployeesTableConfig } from "../../entities/employees/ui/useEmployeesTableConfig";
+import CreateEmployeeModal from "./CreateEmployeeModal";
+import EditEmployeeModal from "./EditEmployeeModal";
 
-const WarehouseRowActions = ({
-                                 warehouse,
-                                 onEdit,
-                                 showNotification,
-                             }: {
-    warehouse: WarehouseResponse;
+const EmployeeRowActions = ({
+                                employee,
+                                onEdit,
+                                showNotification,
+                            }: {
+    employee: EmployeeResponse;
     onEdit: () => void;
     showNotification: (msg: string, severity: "success" | "error") => void;
 }) => {
-    const { useDeleteWarehouse } = useWarehouses();
-    const deleteMutation = useDeleteWarehouse();
+    const { useDeactivateEmployee } = useEmployees();
+    const deactivateMutation = useDeactivateEmployee();
 
-    const handleDelete = (e: React.MouseEvent) => {
+    const handleDeactivate = (e: React.MouseEvent) => {
         e.stopPropagation();
-        deleteMutation.mutate(warehouse.id, {
-            onSuccess: () => showNotification(`Склад "${warehouse.name}" успешно удалён`, "success"),
-            onError: () => showNotification(`Ошибка при удалении склада "${warehouse.name}"`, "error"),
+        deactivateMutation.mutate(employee.id, {
+            onSuccess: () => showNotification(`Сотрудник "${employee.name}" деактивирован`, "success"),
+            onError: () => showNotification(`Ошибка при деактивации "${employee.name}"`, "error"),
         });
     };
 
@@ -44,33 +44,35 @@ const WarehouseRowActions = ({
                     <EditIcon fontSize="small" />
                 </IconButton>
             </Tooltip>
-            <Tooltip title="Удалить" arrow>
-                <IconButton
-                    onClick={handleDelete}
-                    size="small"
-                    color="error"
-                    disabled={deleteMutation.isPending}
-                    sx={{ "&:hover": { backgroundColor: "rgba(211, 47, 47, 0.08)" } }}
-                >
-                    <DeleteIcon fontSize="small" />
-                </IconButton>
+            <Tooltip title={employee.isActive ? "Деактивировать" : "Уже неактивен"} arrow>
+                <span>
+                    <IconButton
+                        onClick={handleDeactivate}
+                        size="small"
+                        color="error"
+                        disabled={deactivateMutation.isPending || !employee.isActive}
+                        sx={{ "&:hover": { backgroundColor: "rgba(211, 47, 47, 0.08)" } }}
+                    >
+                        <PersonOffIcon fontSize="small" />
+                    </IconButton>
+                </span>
             </Tooltip>
         </Box>
     );
 };
 
-export default function WarehouseTable(): JSX.Element {
+export default function EmployeeTable(): JSX.Element {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [selectedWarehouse, setSelectedWarehouse] = useState<WarehouseResponse | null>(null);
+    const [selectedEmployee, setSelectedEmployee] = useState<EmployeeResponse | null>(null);
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState("");
     const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">("success");
 
-    const { useGetAllWarehouses } = useWarehouses();
-    const { data: warehousesData, isLoading, isError, error } = useGetAllWarehouses();
+    const { useGetAllEmployees } = useEmployees();
+    const { data: employeesData, isLoading, isError, error } = useGetAllEmployees();
 
-    const { columns, defaultMRTOptions } = useWarehousesTableConfig();
+    const { columns, defaultMRTOptions } = useEmployeesTableConfig();
 
     const showNotification = (msg: string, severity: "success" | "error") => {
         setSnackbarMessage(msg);
@@ -81,24 +83,24 @@ export default function WarehouseTable(): JSX.Element {
     const table = useMaterialReactTable({
         ...defaultMRTOptions,
         columns,
-        data: warehousesData || [],
+        data: employeesData || [],
         enableRowActions: true,
         positionActionsColumn: "last",
         displayColumnDefOptions: {
             "mrt-row-actions": { header: "Действие", size: 100 },
         },
         renderRowActions: ({ row }) => (
-            <WarehouseRowActions
-                warehouse={row.original}
+            <EmployeeRowActions
+                employee={row.original}
                 onEdit={() => {
-                    setSelectedWarehouse(row.original);
+                    setSelectedEmployee(row.original);
                     setIsEditModalOpen(true);
                 }}
                 showNotification={showNotification}
             />
         ),
         renderTopToolbarCustomActions: () => (
-            <Tooltip title="Добавить склад" arrow>
+            <Tooltip title="Добавить сотрудника" arrow>
                 <IconButton
                     onClick={() => setIsCreateModalOpen(true)}
                     sx={{ backgroundColor: "transparent", boxShadow: "none" }}
@@ -110,12 +112,12 @@ export default function WarehouseTable(): JSX.Element {
         muiTableContainerProps: { sx: { height: "75vh" } },
     });
 
-    if (isLoading) return <Loading content="Загрузка складов..." />;
+    if (isLoading) return <Loading content="Загрузка сотрудников..." />;
 
     if (isError) {
         return (
             <Box sx={{ p: 2 }}>
-                <ErrorBlock content="Ошибка при загрузке складов!" />
+                <ErrorBlock content="Ошибка при загрузке сотрудников!" />
                 <Typography color="error" sx={{ mt: 1 }}>
                     {error instanceof Error ? error.message : String(error)}
                 </Typography>
@@ -128,17 +130,17 @@ export default function WarehouseTable(): JSX.Element {
             <MaterialReactTable table={table} />
 
             {isCreateModalOpen && (
-                <CreateWarehouseModal
+                <CreateEmployeeModal
                     open={isCreateModalOpen}
                     onClose={() => setIsCreateModalOpen(false)}
                 />
             )}
 
-            {isEditModalOpen && selectedWarehouse && (
-                <EditWarehouseModal
+            {isEditModalOpen && selectedEmployee && (
+                <EditEmployeeModal
                     open={isEditModalOpen}
-                    warehouse={selectedWarehouse}
-                    onClose={() => { setIsEditModalOpen(false); setSelectedWarehouse(null); }}
+                    employee={selectedEmployee}
+                    onClose={() => { setIsEditModalOpen(false); setSelectedEmployee(null); }}
                 />
             )}
 

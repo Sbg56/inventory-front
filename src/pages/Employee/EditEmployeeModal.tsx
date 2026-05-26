@@ -3,51 +3,49 @@ import * as React from "react";
 import {
     Dialog, DialogTitle, DialogContent, DialogActions,
     TextField, Button, Grid, Typography, Paper,
-    Autocomplete, CircularProgress,
+    FormControlLabel, Switch, MenuItem,
 } from "@mui/material";
-import { useWarehouses } from "../../entities/warehouseApi/model/useWarehouses";
 import { useEmployees } from "../../entities/employees/model/useEmployees";
-import type { WarehouseResponse } from "../../shared/types/warehouseTypes";
+import type { EmployeeResponse } from "../../shared/types/employeeTypes";
 
-interface EditWarehouseModalProps {
+interface EditEmployeeModalProps {
     open: boolean;
     onClose: () => void;
-    warehouse: WarehouseResponse;
+    employee: EmployeeResponse;
 }
 
-export default function EditWarehouseModal({ open, onClose, warehouse }: EditWarehouseModalProps) {
-    const { useUpdateWarehouse } = useWarehouses();
-    const updateMutation = useUpdateWarehouse();
+const STATUS_OPTIONS = [
+    "Менеджер склада",
+    "Кладовщик",
+    "Логист",
+    "Бухгалтер",
+    "Администратор",
+    "Другое",
+];
 
-    const { useGetAllEmployees } = useEmployees();
-    const { data: employees, isLoading: employeesLoading } = useGetAllEmployees();
+export default function EditEmployeeModal({ open, onClose, employee }: EditEmployeeModalProps) {
+    const { useUpdateEmployee } = useEmployees();
+    const updateMutation = useUpdateEmployee();
 
-    const [formData, setFormData] = useState<{
-        name: string;
-        address: string;
-        employeeId: number | null;
-        description: string;
-    }>({
+    const [formData, setFormData] = useState({
         name: "",
-        address: "",
-        employeeId: null,
-        description: "",
+        email: "",
+        phone: "",
+        status: "",
+        isActive: true,
     });
 
-    const [selectedEmployee, setSelectedEmployee] = useState<{ id: number; name: string } | null>(null);
-
     useEffect(() => {
-        if (warehouse && open && employees) {
-            const matched = employees.find(emp => emp.name === warehouse.employeeName) ?? null;
-            setSelectedEmployee(matched ? { id: matched.id, name: matched.name } : null);
+        if (employee && open) {
             setFormData({
-                name: warehouse.name ?? "",
-                address: warehouse.address ?? "",
-                employeeId: matched?.id ?? null,
-                description: warehouse.description ?? "",
+                name: employee.name ?? "",
+                email: employee.email ?? "",
+                phone: employee.phone ?? "",
+                status: employee.status ?? "",
+                isActive: employee.isActive ?? true,
             });
         }
-    }, [warehouse, open, employees]);
+    }, [employee, open]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -57,12 +55,10 @@ export default function EditWarehouseModal({ open, onClose, warehouse }: EditWar
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         updateMutation.mutate(
-            { id: warehouse.id, updates: formData },
+            { id: employee.id, updates: formData },
             { onSuccess: () => onClose() }
         );
     };
-
-    const activeEmployees = (employees ?? []).filter(emp => emp.isActive);
 
     return (
         <Dialog
@@ -77,7 +73,7 @@ export default function EditWarehouseModal({ open, onClose, warehouse }: EditWar
             <DialogTitle
                 sx={{ color: "#A04E2B", fontWeight: 700, fontSize: "1.4rem", borderBottom: "1px solid #eee", pb: 1.5 }}
             >
-                ✏️ Редактирование склада
+                ✏️ Редактирование сотрудника
             </DialogTitle>
 
             <form onSubmit={handleSubmit}>
@@ -89,7 +85,7 @@ export default function EditWarehouseModal({ open, onClose, warehouse }: EditWar
                                 <Grid container spacing={2}>
                                     <Grid item xs={12}>
                                         <TextField
-                                            label="Название склада"
+                                            label="Имя сотрудника"
                                             name="name"
                                             value={formData.name}
                                             onChange={handleChange}
@@ -100,58 +96,57 @@ export default function EditWarehouseModal({ open, onClose, warehouse }: EditWar
                                     </Grid>
                                     <Grid item xs={12}>
                                         <TextField
-                                            label="Адрес"
-                                            name="address"
-                                            value={formData.address}
+                                            label="Email"
+                                            name="email"
+                                            type="email"
+                                            value={formData.email}
                                             onChange={handleChange}
                                             fullWidth
                                             size="small"
-                                        />
-                                    </Grid>
-                                    <Grid item xs={12}>
-                                        <Autocomplete
-                                            options={activeEmployees}
-                                            getOptionLabel={(option) => option.name}
-                                            value={selectedEmployee}
-                                            loading={employeesLoading}
-                                            onChange={(_event, newValue) => {
-                                                setSelectedEmployee(newValue);
-                                                setFormData(prev => ({
-                                                    ...prev,
-                                                    employeeId: newValue?.id ?? null,
-                                                }));
-                                            }}
-                                            renderInput={(params) => (
-                                                <TextField
-                                                    {...params}
-                                                    label="Ответственный сотрудник"
-                                                    size="small"
-                                                    InputProps={{
-                                                        ...params.InputProps,
-                                                        endAdornment: (
-                                                            <>
-                                                                {employeesLoading && <CircularProgress color="inherit" size={16} />}
-                                                                {params.InputProps.endAdornment}
-                                                            </>
-                                                        ),
-                                                    }}
-                                                />
-                                            )}
-                                            isOptionEqualToValue={(option, value) => option.id === value.id}
-                                            noOptionsText="Сотрудники не найдены"
-                                            loadingText="Загрузка..."
                                         />
                                     </Grid>
                                     <Grid item xs={12}>
                                         <TextField
-                                            label="Описание"
-                                            name="description"
-                                            value={formData.description}
+                                            label="Телефон"
+                                            name="phone"
+                                            value={formData.phone}
                                             onChange={handleChange}
                                             fullWidth
-                                            multiline
-                                            rows={3}
                                             size="small"
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12}>
+                                        <TextField
+                                            select
+                                            label="Должность"
+                                            name="status"
+                                            value={formData.status}
+                                            onChange={handleChange}
+                                            fullWidth
+                                            size="small"
+                                        >
+                                            {STATUS_OPTIONS.map(option => (
+                                                <MenuItem key={option} value={option}>
+                                                    {option}
+                                                </MenuItem>
+                                            ))}
+                                        </TextField>
+                                    </Grid>
+                                    <Grid item xs={12}>
+                                        <FormControlLabel
+                                            control={
+                                                <Switch
+                                                    checked={formData.isActive}
+                                                    onChange={e =>
+                                                        setFormData(prev => ({ ...prev, isActive: e.target.checked }))
+                                                    }
+                                                    sx={{
+                                                        "& .MuiSwitch-switchBase.Mui-checked": { color: "#CB673C" },
+                                                        "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": { backgroundColor: "#CB673C" },
+                                                    }}
+                                                />
+                                            }
+                                            label="Активен"
                                         />
                                     </Grid>
                                 </Grid>

@@ -20,7 +20,7 @@ export const useWarehousesTableConfig = () => {
                 enableSorting: true,
             },
             {
-                accessorKey: "employee",
+                accessorKey: "employeeName",
                 header: "Ответственный",
                 enableSorting: true,
             },

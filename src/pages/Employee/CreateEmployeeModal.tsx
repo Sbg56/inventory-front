@@ -3,34 +3,37 @@ import * as React from "react";
 import {
     Dialog, DialogTitle, DialogContent, DialogActions,
     TextField, Button, Grid, Typography, Paper,
-    Autocomplete, CircularProgress,
+    FormControlLabel, Switch, MenuItem,
 } from "@mui/material";
-import { useWarehouses } from "../../entities/warehouseApi/model/useWarehouses";
 
-import type { WarehouseRequest } from "../../shared/types/warehouseTypes";
+import type { EmployeeRequest } from "../../shared/types/employeeTypes";
 import {useEmployees} from "../../entities/employees/model/useEmployees";
 
-interface CreateWarehouseModalProps {
+interface CreateEmployeeModalProps {
     open: boolean;
     onClose: () => void;
 }
 
-export default function CreateWarehouseModal({ open, onClose }: CreateWarehouseModalProps) {
-    const { useCreateWarehouse } = useWarehouses();
-    const createMutation = useCreateWarehouse();
+const STATUS_OPTIONS = [
+    "Менеджер склада",
+    "Кладовщик",
+    "Логист",
+    "Бухгалтер",
+    "Администратор",
+    "Другое",
+];
 
-    const { useGetAllEmployees } = useEmployees();
-    const { data: employees, isLoading: employeesLoading } = useGetAllEmployees();
+export default function CreateEmployeeModal({ open, onClose }: CreateEmployeeModalProps) {
+    const { useCreateEmployee } = useEmployees();
+    const createMutation = useCreateEmployee();
 
-    const [formData, setFormData] = useState<WarehouseRequest>({
+    const [formData, setFormData] = useState<EmployeeRequest>({
         name: "",
-        address: "",
-        employeeId: 0,
-        description: "",
+        email: "",
+        phone: "",
+        status: "",
+        isActive: true,
     });
-
-    // Выбранный сотрудник для Autocomplete
-    const [selectedEmployee, setSelectedEmployee] = useState<{ id: number; name: string } | null>(null);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -41,14 +44,11 @@ export default function CreateWarehouseModal({ open, onClose }: CreateWarehouseM
         e.preventDefault();
         createMutation.mutate(formData, {
             onSuccess: () => {
-                setFormData({ name: "", address: "", employeeId: 0, description: "" });
-                setSelectedEmployee(null);
+                setFormData({ name: "", email: "", phone: "", status: "", isActive: true });
                 onClose();
             },
         });
     };
-
-    const activeEmployees = (employees ?? []).filter(emp => emp.isActive);
 
     return (
         <Dialog
@@ -63,7 +63,7 @@ export default function CreateWarehouseModal({ open, onClose }: CreateWarehouseM
             <DialogTitle
                 sx={{ color: "#A04E2B", fontWeight: 700, fontSize: "1.5rem", borderBottom: "1px solid #eee", mb: 2 }}
             >
-                🏭 Новый склад
+                👤 Новый сотрудник
             </DialogTitle>
 
             <form onSubmit={handleSubmit}>
@@ -75,7 +75,7 @@ export default function CreateWarehouseModal({ open, onClose }: CreateWarehouseM
                                 <Grid container spacing={2}>
                                     <Grid item xs={12}>
                                         <TextField
-                                            label="Название склада"
+                                            label="Имя сотрудника"
                                             name="name"
                                             value={formData.name}
                                             onChange={handleChange}
@@ -86,58 +86,57 @@ export default function CreateWarehouseModal({ open, onClose }: CreateWarehouseM
                                     </Grid>
                                     <Grid item xs={12}>
                                         <TextField
-                                            label="Адрес"
-                                            name="address"
-                                            value={formData.address}
+                                            label="Email"
+                                            name="email"
+                                            type="email"
+                                            value={formData.email}
                                             onChange={handleChange}
                                             fullWidth
                                             size="small"
-                                        />
-                                    </Grid>
-                                    <Grid item xs={12}>
-                                        <Autocomplete
-                                            options={activeEmployees}
-                                            getOptionLabel={(option) => option.name}
-                                            value={selectedEmployee}
-                                            loading={employeesLoading}
-                                            onChange={(_event, newValue) => {
-                                                setSelectedEmployee(newValue);
-                                                setFormData(prev => ({
-                                                    ...prev,
-                                                    employeeId: newValue?.id ?? 0,
-                                                }));
-                                            }}
-                                            renderInput={(params) => (
-                                                <TextField sx={{ minWidth: 320, width: '100%' }}
-                                                    {...params}
-                                                    label="Ответственный сотрудник"
-                                                    size="small"
-                                                    InputProps={{
-                                                        ...params.InputProps,
-                                                        endAdornment: (
-                                                            <>
-                                                                {employeesLoading && <CircularProgress color="inherit" size={16} />}
-                                                                {params.InputProps.endAdornment}
-                                                            </>
-                                                        ),
-                                                    }}
-                                                />
-                                            )}
-                                            isOptionEqualToValue={(option, value) => option.id === value.id}
-                                            noOptionsText="Сотрудники не найдены"
-                                            loadingText="Загрузка..."
                                         />
                                     </Grid>
                                     <Grid item xs={12}>
                                         <TextField
-                                            label="Описание"
-                                            name="description"
-                                            value={formData.description}
+                                            label="Телефон"
+                                            name="phone"
+                                            value={formData.phone}
                                             onChange={handleChange}
                                             fullWidth
-                                            multiline
-                                            rows={3}
                                             size="small"
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12}>
+                                        <TextField
+                                            select
+                                            label="Должность"
+                                            name="status"
+                                            value={formData.status}
+                                            onChange={handleChange}
+                                            fullWidth
+                                            size="small"
+                                        >
+                                            {STATUS_OPTIONS.map(option => (
+                                                <MenuItem key={option} value={option}>
+                                                    {option}
+                                                </MenuItem>
+                                            ))}
+                                        </TextField>
+                                    </Grid>
+                                    <Grid item xs={12}>
+                                        <FormControlLabel
+                                            control={
+                                                <Switch
+                                                    checked={formData.isActive}
+                                                    onChange={e =>
+                                                        setFormData(prev => ({ ...prev, isActive: e.target.checked }))
+                                                    }
+                                                    sx={{
+                                                        "& .MuiSwitch-switchBase.Mui-checked": { color: "#CB673C" },
+                                                        "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": { backgroundColor: "#CB673C" },
+                                                    }}
+                                                />
+                                            }
+                                            label="Активен"
                                         />
                                     </Grid>
                                 </Grid>
@@ -164,7 +163,7 @@ export default function CreateWarehouseModal({ open, onClose }: CreateWarehouseM
                             "&:hover": { backgroundColor: "#A04E2B", boxShadow: "none" },
                         }}
                     >
-                        {createMutation.isPending ? "Сохранение..." : "Сохранить склад"}
+                        {createMutation.isPending ? "Сохранение..." : "Сохранить сотрудника"}
                     </Button>
                 </DialogActions>
             </form>

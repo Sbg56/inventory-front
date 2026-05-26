@@ -2,7 +2,7 @@ export interface WarehouseResponse {
     id: number;
     name: string;
     address: string;
-    employee: string;
+    employeeName: string;
     description: string;
 }
 
