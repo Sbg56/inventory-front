@@ -19,6 +19,7 @@ import * as React from "react";
 import type { ProductResponse } from "../../shared/types/productTypes";
 import EditCategoryModal from "../Categories/EditCategoryModal";
 import type { CategoryResponse } from "../../shared/types/categoryTypes";
+import PriceDetailPanel from "../PriceDetailPanel";
 
 const ProductRowActions = ({
                                product,
@@ -180,6 +181,11 @@ export default function ProductTable(): JSX.Element {
                 size: 100,
             },
         },
+
+        enableExpanding: true,
+        renderDetailPanel: ({ row }) => (
+            <PriceDetailPanel productId={row.original.id} />
+        ),
 
         renderRowActions: ({ row }) => (
             <ProductRowActions
