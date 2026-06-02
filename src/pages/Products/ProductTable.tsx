@@ -19,7 +19,7 @@ import * as React from "react";
 import type { ProductResponse } from "../../shared/types/productTypes";
 import EditCategoryModal from "../Categories/EditCategoryModal";
 import type { CategoryResponse } from "../../shared/types/categoryTypes";
-import PriceDetailPanel from "../PriceDetailPanel";
+import PriceDetailPanel from "../prices/PriceDetailPanel";
 
 const ProductRowActions = ({
                                product,

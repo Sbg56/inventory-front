@@ -3,15 +3,16 @@ import * as React from "react";
 import {
     Box, Typography, CircularProgress, Chip, IconButton, Tooltip,
     Dialog, DialogTitle, DialogContent, DialogActions,
-    Button, TextField, Grid, Paper
+    Button, TextField, Grid, Paper,
+    Table, TableHead, TableBody, TableRow, TableCell,
 } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import type {PriceRequest, PriceResponse} from "../shared/types/priceTypes";
-import {useGetPrices} from "../entities/prices/model/useGetPrices";
+import type {PriceRequest, PriceResponse} from "../../shared/types/priceTypes";
+import {useGetPrices} from "../../entities/prices/model/useGetPrices";
 
-// ─── helpers ────────────────────────────────────────────────────────────────
+// ─── helpers ─────────────────────────────────────────────────────────────────
 
 const today = () => new Date().toISOString().split("T")[0];
 
@@ -24,7 +25,7 @@ const fmt = (n: number | null | undefined) =>
 const fmtPct = (n: number | null | undefined) =>
     n != null ? `${n}%` : "—";
 
-// ─── Add / Edit modal ────────────────────────────────────────────────────────
+// ─── Add / Edit modal ─────────────────────────────────────────────────────────
 
 interface PriceModalProps {
     open: boolean;
@@ -113,8 +114,8 @@ function PriceModal({ open, onClose, productId, initialData }: PriceModalProps) 
             <DialogTitle sx={{
                 fontWeight: 700,
                 fontSize: "1.05rem",
-                color: "#1a1a1a",
-                borderBottom: "1px solid #f0f0f0",
+                color: "#A04E2B",
+                borderBottom: "1px solid #F5DBCF",
                 pb: 1.5,
                 letterSpacing: "-0.2px",
             }}>
@@ -124,7 +125,6 @@ function PriceModal({ open, onClose, productId, initialData }: PriceModalProps) 
             <form onSubmit={handleSubmit}>
                 <DialogContent sx={{ pt: 2.5 }}>
                     <Grid container spacing={2}>
-
                         <Grid item xs={12}>
                             <Paper variant="outlined" sx={sectionPaper}>
                                 <SectionLabel>Стоимость</SectionLabel>
@@ -188,11 +188,10 @@ function PriceModal({ open, onClose, productId, initialData }: PriceModalProps) 
                                 </Grid>
                             </Paper>
                         </Grid>
-
                     </Grid>
                 </DialogContent>
 
-                <DialogActions sx={{ p: 2, backgroundColor: "#fafafa", borderTop: "1px solid #f0f0f0" }}>
+                <DialogActions sx={{ p: 2, backgroundColor: "#fafafa", borderTop: "1px solid #F5DBCF" }}>
                     <Button
                         onClick={onClose}
                         sx={{ color: "#6b6b6b", textTransform: "none", fontWeight: 500 }}
@@ -204,13 +203,13 @@ function PriceModal({ open, onClose, productId, initialData }: PriceModalProps) 
                         variant="contained"
                         disabled={isPending}
                         sx={{
-                            backgroundColor: "#1a1a1a",
+                            backgroundColor: "#CB673C",
                             textTransform: "none",
                             fontWeight: 600,
                             px: 4,
                             borderRadius: "6px",
                             boxShadow: "none",
-                            "&:hover": { backgroundColor: "#333", boxShadow: "none" },
+                            "&:hover": { backgroundColor: "#A04E2B", boxShadow: "none" },
                             "&:disabled": { backgroundColor: "#d4d4d4" },
                         }}
                     >
@@ -222,7 +221,7 @@ function PriceModal({ open, onClose, productId, initialData }: PriceModalProps) 
     );
 }
 
-// ─── Main panel ──────────────────────────────────────────────────────────────
+// ─── Main panel ───────────────────────────────────────────────────────────────
 
 export default function PriceDetailPanel({ productId }: { productId: number }) {
     const { usePricesByProductId, useDeactivatePrice } = useGetPrices();
@@ -235,8 +234,8 @@ export default function PriceDetailPanel({ productId }: { productId: number }) {
     if (isLoading) {
         return (
             <Box sx={{ px: 3, py: 2, display: "flex", alignItems: "center", gap: 1 }}>
-                <CircularProgress size={14} sx={{ color: "#888" }} />
-                <Typography variant="body2" sx={{ color: "#888", fontSize: "0.8rem" }}>
+                <CircularProgress size={14} sx={{ color: "#CB673C" }} />
+                <Typography variant="body2" sx={{ color: "#A04E2B", fontSize: "0.8rem" }}>
                     Загрузка цен...
                 </Typography>
             </Box>
@@ -247,34 +246,46 @@ export default function PriceDetailPanel({ productId }: { productId: number }) {
     const archivedPrices = prices?.filter(p => !isActivePrice(p)) ?? [];
 
     return (
-        <Box sx={{
-            px: 3,
-            py: 2.5,
-            backgroundColor: "#fff",
-            borderTop: "1px solid #ebebeb",
-        }}>
-            {/* Header row */}
-            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
-                <Typography sx={{
-                    fontWeight: 700,
-                    fontSize: "0.75rem",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.8px",
-                    color: "#1a1a1a",
-                }}>
-                    Цены
-                </Typography>
+        <Paper
+            variant="outlined"
+            sx={{
+                p: 2,
+                m: 1,
+                bgcolor: "#FAFAFA",
+                border: "1px dashed #CB673C",
+                borderRadius: "6px",
+            }}
+        >
+            {/* Header */}
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1.5 }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#A04E2B" }}>
+                        Цены на товар
+                    </Typography>
+                    {prices && prices.length > 0 && (
+                        <Chip
+                            label={`${activePrices.length} актив.`}
+                            size="small"
+                            sx={{
+                                bgcolor: "#F5DBCF",
+                                color: "#422112",
+                                fontWeight: 600,
+                                fontSize: "0.7rem",
+                            }}
+                        />
+                    )}
+                </Box>
                 <Tooltip title="Добавить цену" arrow>
                     <IconButton
                         size="small"
                         onClick={() => setAddOpen(true)}
                         sx={{
-                            color: "#555",
-                            border: "1px solid #e0e0e0",
+                            color: "#CB673C",
+                            border: "1px solid #F5DBCF",
                             borderRadius: "6px",
                             width: 28,
                             height: 28,
-                            "&:hover": { backgroundColor: "#f5f5f5", borderColor: "#bbb" },
+                            "&:hover": { backgroundColor: "#FFF5F0", borderColor: "#CB673C" },
                         }}
                     >
                         <AddCircleOutlineIcon sx={{ fontSize: 15 }} />
@@ -282,63 +293,173 @@ export default function PriceDetailPanel({ productId }: { productId: number }) {
                 </Tooltip>
             </Box>
 
-            {/* No prices at all */}
+            {/* No prices */}
             {(!prices || prices.length === 0) && (
                 <Box sx={{
                     py: 3,
                     textAlign: "center",
-                    border: "1px dashed #e0e0e0",
-                    borderRadius: "8px",
-                    mb: 1,
+                    border: "1px dashed #F5DBCF",
+                    borderRadius: "6px",
                 }}>
-                    <Typography variant="body2" sx={{ color: "#aaa", fontSize: "0.8rem" }}>
+                    <Typography variant="body2" sx={{ color: "#CB673C", fontSize: "0.8rem", fontStyle: "italic" }}>
                         Цены не заданы
                     </Typography>
                 </Box>
             )}
 
-            {/* Active prices table */}
+            {/* Active prices */}
             {activePrices.length > 0 && (
-                <Box sx={{
-                    border: "1px solid #ebebeb",
-                    borderRadius: "8px",
-                    overflow: "hidden",
-                }}>
-                    <PriceTable
-                        prices={activePrices}
-                        onEdit={setEditTarget}
-                        onDelete={id => deactivateMutation.mutate(id)}
-                        isPendingDelete={deactivateMutation.isPending}
-                    />
-                </Box>
+                <Table size="small">
+                    <TableHead>
+                        <TableRow sx={{
+                            "& th": {
+                                fontWeight: 700,
+                                color: "#757575",
+                                bgcolor: "#F5F5F5",
+                                borderBottom: "2px solid #F5DBCF",
+                            },
+                        }}>
+                            <TableCell>#</TableCell>
+                            <TableCell>Закупочная</TableCell>
+                            <TableCell>Продажная</TableCell>
+                            <TableCell>Оптовая</TableCell>
+                            <TableCell>Маржа</TableCell>
+                            <TableCell>Действует с</TableCell>
+                            <TableCell>Действует до</TableCell>
+                            <TableCell align="right" />
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {activePrices.map((price, index) => (
+                            <TableRow
+                                key={price.priceId}
+                                sx={{
+                                    "&:last-child td": { border: 0 },
+                                    "&:hover": { bgcolor: "#FFF5F0" },
+                                }}
+                            >
+                                <TableCell sx={{ color: "#9e9e9e", width: 40 }}>
+                                    {index + 1}
+                                </TableCell>
+                                <TableCell sx={{ color: "#444" }}>
+                                    {fmt(price.purchasePrice)}
+                                </TableCell>
+                                <TableCell sx={{ fontWeight: 700, color: "#1565C0" }}>
+                                    {fmt(price.sellingPrice)}
+                                </TableCell>
+                                <TableCell sx={{ color: "#555" }}>
+                                    {fmt(price.wholesalePrice)}
+                                </TableCell>
+                                <TableCell sx={{ color: "#137333", fontWeight: 600 }}>
+                                    {fmtPct(price.margin)}
+                                </TableCell>
+                                <TableCell sx={{ color: "#888", fontSize: "0.78rem" }}>
+                                    {price.validFrom ?? "—"}
+                                </TableCell>
+                                <TableCell sx={{ color: "#888", fontSize: "0.78rem" }}>
+                                    {price.validTo ?? "∞"}
+                                </TableCell>
+                                <TableCell align="right">
+                                    <Tooltip title="Редактировать" arrow>
+                                        <IconButton
+                                            size="small"
+                                            onClick={() => setEditTarget(price)}
+                                            sx={{ color: "#CB673C", "&:hover": { bgcolor: "#FFF5F0" } }}
+                                        >
+                                            <EditIcon sx={{ fontSize: 14 }} />
+                                        </IconButton>
+                                    </Tooltip>
+                                    <Tooltip title="Деактивировать" arrow>
+                                        <span>
+                                            <IconButton
+                                                size="small"
+                                                onClick={() => deactivateMutation.mutate(price.priceId)}
+                                                disabled={deactivateMutation.isPending}
+                                                sx={{
+                                                    color: "#bbb",
+                                                    "&:hover": { color: "#d32f2f", bgcolor: "#FFF5F0" },
+                                                    "&:disabled": { color: "#e0e0e0" },
+                                                }}
+                                            >
+                                                <DeleteIcon sx={{ fontSize: 14 }} />
+                                            </IconButton>
+                                        </span>
+                                    </Tooltip>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
             )}
 
             {/* Archived prices */}
             {archivedPrices.length > 0 && (
                 <Box sx={{ mt: 2 }}>
                     <Typography sx={{
-                        color: "#aaa",
+                        color: "#CB673C",
                         fontSize: "0.7rem",
                         fontWeight: 600,
                         textTransform: "uppercase",
                         letterSpacing: "0.6px",
                         mb: 1,
+                        opacity: 0.7,
                     }}>
                         Архив ({archivedPrices.length})
                     </Typography>
-                    <Box sx={{
-                        border: "1px solid #ebebeb",
-                        borderRadius: "8px",
-                        overflow: "hidden",
-                    }}>
-                        <PriceTable
-                            prices={archivedPrices}
-                            onEdit={setEditTarget}
-                            onDelete={id => deactivateMutation.mutate(id)}
-                            isPendingDelete={deactivateMutation.isPending}
-                            archived
-                        />
-                    </Box>
+                    <Table size="small">
+                        <TableHead>
+                            <TableRow sx={{
+                                "& th": {
+                                    fontWeight: 700,
+                                    color: "#bdbdbd",
+                                    bgcolor: "#F5F5F5",
+                                    borderBottom: "2px solid #ebebeb",
+                                },
+                            }}>
+                                <TableCell>#</TableCell>
+                                <TableCell>Закупочная</TableCell>
+                                <TableCell>Продажная</TableCell>
+                                <TableCell>Оптовая</TableCell>
+                                <TableCell>Маржа</TableCell>
+                                <TableCell>Действует с</TableCell>
+                                <TableCell>Действует до</TableCell>
+                                <TableCell align="right" />
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {archivedPrices.map((price, index) => (
+                                <TableRow
+                                    key={price.priceId}
+                                    sx={{
+                                        opacity: 0.5,
+                                        "&:last-child td": { border: 0 },
+                                        "&:hover": { bgcolor: "#fafafa" },
+                                    }}
+                                >
+                                    <TableCell sx={{ color: "#9e9e9e", width: 40 }}>
+                                        {index + 1}
+                                    </TableCell>
+                                    <TableCell sx={{ color: "#444" }}>{fmt(price.purchasePrice)}</TableCell>
+                                    <TableCell sx={{ fontWeight: 600, color: "#666" }}>{fmt(price.sellingPrice)}</TableCell>
+                                    <TableCell sx={{ color: "#555" }}>{fmt(price.wholesalePrice)}</TableCell>
+                                    <TableCell sx={{ color: "#888" }}>{fmtPct(price.margin)}</TableCell>
+                                    <TableCell sx={{ color: "#aaa", fontSize: "0.78rem" }}>{price.validFrom ?? "—"}</TableCell>
+                                    <TableCell sx={{ color: "#aaa", fontSize: "0.78rem" }}>{price.validTo ?? "—"}</TableCell>
+                                    <TableCell align="right">
+                                        <Tooltip title="Редактировать" arrow>
+                                            <IconButton
+                                                size="small"
+                                                onClick={() => setEditTarget(price)}
+                                                sx={{ color: "#ccc", "&:hover": { color: "#CB673C", bgcolor: "#FFF5F0" } }}
+                                            >
+                                                <EditIcon sx={{ fontSize: 14 }} />
+                                            </IconButton>
+                                        </Tooltip>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
                 </Box>
             )}
 
@@ -356,192 +477,23 @@ export default function PriceDetailPanel({ productId }: { productId: number }) {
                     initialData={editTarget}
                 />
             )}
-        </Box>
-    );
-}
-
-// ─── Price table ─────────────────────────────────────────────────────────────
-
-interface PriceTableProps {
-    prices: PriceResponse[];
-    onEdit: (price: PriceResponse) => void;
-    onDelete: (priceId: number) => void;
-    isPendingDelete: boolean;
-    archived?: boolean;
-}
-
-function PriceTable({ prices, onEdit, onDelete, isPendingDelete, archived = false }: PriceTableProps) {
-    const cols: { label: string; width?: string }[] = [
-        { label: "Статус",       width: "80px"  },
-        { label: "Закупочная",   width: "120px" },
-        { label: "Продажная",    width: "120px" },
-        { label: "Оптовая",      width: "120px" },
-        { label: "Маржа",        width: "80px"  },
-        { label: "Действует с",  width: "110px" },
-        { label: "Действует до", width: "110px" },
-        { label: "",             width: "72px"  },
-    ];
-
-    return (
-        <Box sx={{ overflowX: "auto" }}>
-            <Box component="table" sx={{ width: "100%", borderCollapse: "collapse", fontSize: "0.82rem" }}>
-                <Box component="thead">
-                    <Box component="tr" sx={{ backgroundColor: "#fafafa" }}>
-                        {cols.map((col, i) => (
-                            <Box
-                                key={i}
-                                component="th"
-                                sx={{
-                                    textAlign: "left",
-                                    fontWeight: 600,
-                                    fontSize: "0.68rem",
-                                    color: "#aaa",
-                                    textTransform: "uppercase",
-                                    letterSpacing: "0.5px",
-                                    py: 1,
-                                    px: 1.5,
-                                    width: col.width,
-                                    borderBottom: "1px solid #ebebeb",
-                                    whiteSpace: "nowrap",
-                                }}
-                            >
-                                {col.label}
-                            </Box>
-                        ))}
-                    </Box>
-                </Box>
-                <Box component="tbody">
-                    {prices.map((price, idx) => (
-                        <PriceRow
-                            key={price.priceId}
-                            price={price}
-                            onEdit={onEdit}
-                            onDelete={onDelete}
-                            isPendingDelete={isPendingDelete}
-                            archived={archived}
-                            isLast={idx === prices.length - 1}
-                        />
-                    ))}
-                </Box>
-            </Box>
-        </Box>
-    );
-}
-
-// ─── Price row ────────────────────────────────────────────────────────────────
-
-interface PriceRowProps {
-    price: PriceResponse;
-    onEdit: (price: PriceResponse) => void;
-    onDelete: (priceId: number) => void;
-    isPendingDelete: boolean;
-    archived: boolean;
-    isLast?: boolean;
-}
-
-function PriceRow({ price, onEdit, onDelete, isPendingDelete, archived, isLast }: PriceRowProps) {
-    const cell = {
-        ...cellSx,
-        borderBottom: isLast ? "none" : "1px solid #f5f5f5",
-    };
-
-    return (
-        <Box
-            component="tr"
-            sx={{
-                opacity: archived ? 0.5 : 1,
-                "&:hover": { backgroundColor: "#fafafa" },
-                transition: "background 0.1s",
-            }}
-        >
-            <Box component="td" sx={cell}>
-                <Chip
-                    label={archived ? "Архив" : "Активна"}
-                    size="small"
-                    sx={{
-                        height: 20,
-                        fontSize: "0.65rem",
-                        fontWeight: 600,
-                        letterSpacing: "0.2px",
-                        backgroundColor: archived ? "#f0f0f0" : "#f0f0f0",
-                        color: archived ? "#aaa" : "#444",
-                        border: "1px solid",
-                        borderColor: archived ? "#e0e0e0" : "#d0d0d0",
-                    }}
-                />
-            </Box>
-            <Box component="td" sx={{ ...cell, fontWeight: 500, color: "#444" }}>
-                {fmt(price.purchasePrice)}
-            </Box>
-            <Box component="td" sx={{ ...cell, fontWeight: 700, color: "#1a1a1a" }}>
-                {fmt(price.sellingPrice)}
-            </Box>
-            <Box component="td" sx={{ ...cell, color: "#555" }}>
-                {fmt(price.wholesalePrice)}
-            </Box>
-            <Box component="td" sx={{ ...cell, color: "#666" }}>
-                {fmtPct(price.margin)}
-            </Box>
-            <Box component="td" sx={{ ...cell, color: "#888", fontSize: "0.78rem" }}>
-                {price.validFrom ?? "—"}
-            </Box>
-            <Box component="td" sx={{ ...cell, color: "#888", fontSize: "0.78rem" }}>
-                {price.validTo ?? "∞"}
-            </Box>
-            <Box component="td" sx={{ ...cell, textAlign: "right" }}>
-                <Tooltip title="Редактировать" arrow>
-                    <IconButton
-                        size="small"
-                        onClick={() => onEdit(price)}
-                        sx={{
-                            color: "#888",
-                            "&:hover": { color: "#1a1a1a", backgroundColor: "#f0f0f0" },
-                        }}
-                    >
-                        <EditIcon sx={{ fontSize: 14 }} />
-                    </IconButton>
-                </Tooltip>
-                <Tooltip title="Деактивировать" arrow>
-                    <span>
-                        <IconButton
-                            size="small"
-                            onClick={() => onDelete(price.priceId)}
-                            disabled={isPendingDelete || archived}
-                            sx={{
-                                color: "#bbb",
-                                "&:hover": { color: "#555", backgroundColor: "#f0f0f0" },
-                                "&:disabled": { color: "#e0e0e0" },
-                            }}
-                        >
-                            <DeleteIcon sx={{ fontSize: 14 }} />
-                        </IconButton>
-                    </span>
-                </Tooltip>
-            </Box>
-        </Box>
+        </Paper>
     );
 }
 
 // ─── Style helpers ────────────────────────────────────────────────────────────
 
-const cellSx = {
-    px: 1.5,
-    py: 1,
-    verticalAlign: "middle",
-    whiteSpace: "nowrap",
-};
-
 const sectionPaper = {
     p: 2,
     borderRadius: "8px",
     bgcolor: "#fafafa",
-    borderColor: "#ebebeb",
+    borderColor: "#F5DBCF",
 };
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
     return (
         <Typography sx={{
-            color: "#555",
+            color: "#A04E2B",
             fontWeight: 700,
             fontSize: "0.72rem",
             textTransform: "uppercase",

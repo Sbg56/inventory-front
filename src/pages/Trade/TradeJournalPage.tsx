@@ -130,7 +130,7 @@ export default function TradeJournalPage() {
                                         {index + 1}
                                     </TableCell>
                                     <TableCell sx={{ fontWeight: 500 }}>
-                                        <pre style={{fontSize: 10}}>{JSON.stringify(items[0], null, 2)}</pre>
+                                        {item.productName || "—"}
                                     </TableCell>
                                     <TableCell align="right">{item.quantity}</TableCell>
                                     <TableCell align="right">
