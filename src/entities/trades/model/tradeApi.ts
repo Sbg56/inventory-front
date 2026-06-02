@@ -16,4 +16,12 @@ export const tradeApi = {
     createPurchaseOrder: async (request: SupplierOrderRequest): Promise<AxiosResponse<SupplierOrderResponse>> => {
         return api.post(`/api/v1/trade/purchase`, request);
     },
+
+    getOrders: async (): Promise<AxiosResponse<OrderResponse[]>> => {
+        return api.get(`/api/v1/trade/get-order`);
+    },
+
+    getSupplierOrders: async (): Promise<AxiosResponse<SupplierOrderResponse[]>> => {
+        return api.get(`/api/v1/trade/get-supplier-order`);
+    },
 };

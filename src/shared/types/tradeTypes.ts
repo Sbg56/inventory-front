@@ -56,9 +56,13 @@ export interface SupplierOrderStructureResponse {
 
 export interface SupplierOrderResponse {
     id: number;
+    supplierName?: string;
+    warehouseName?: string;
+    warehouseId?: number;
     documentNumber: string;
-    warehouseId: number;
     totalAmount: number;
+    status?: string;
+    notes?: string;
     items: SupplierOrderStructureResponse[];
     createdAt?: string;
 }
