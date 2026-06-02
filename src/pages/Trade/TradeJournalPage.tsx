@@ -1,9 +1,8 @@
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     MaterialReactTable,
     useMaterialReactTable,
-    type MRT_ColumnDef
 } from "material-react-table";
 import {
     Box,
@@ -16,7 +15,8 @@ import {
     TableBody,
     TableRow,
     TableCell,
-    Paper
+    Paper,
+    Chip,
 } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import ShoppingCartCheckoutIcon from "@mui/icons-material/ShoppingCartCheckout";
@@ -24,8 +24,13 @@ import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 
 import Layout from "../../shared/ui/layout/Layout";
 import { useTrade } from "../../entities/trades/model/useTrade";
+import { useTradeTableConfig } from "../../entities/trades/ui/useTradeTableConfig";
 import Loading from "../../shared/ui/base/Loading";
 import ErrorBlock from "../../shared/ui/base/ErrorBlock";
+import type {
+    OrderStructureResponse,
+    SupplierOrderStructureResponse,
+} from "../../shared/types/tradeTypes";
 
 type TradeMode = "sale" | "purchase";
 
@@ -35,7 +40,6 @@ export default function TradeJournalPage() {
 
     const { useGetOrders, useGetSupplierOrders } = useTrade();
 
-    // Загрузка данных с бэкенда
     const { data: salesData, isLoading: isLoadingSales, error: errorSales } = useGetOrders();
     const { data: purchasesData, isLoading: isLoadingPurchases, error: errorPurchases } = useGetSupplierOrders();
 
@@ -48,94 +52,65 @@ export default function TradeJournalPage() {
     const isLoading = isSale ? isLoadingSales : isLoadingPurchases;
     const error = isSale ? errorSales : errorPurchases;
 
-    // Конфигурация колонок в зависимости от выбранного режима
-    const columns = useMemo<MRT_ColumnDef<any>[]>(() => {
-        const baseColumns: MRT_ColumnDef<any>[] = [
-            {
-                accessorKey: "documentNumber",
-                header: "Номер документа",
-                muiTableBodyCellProps: { sx: { fontWeight: 600, color: "#422112" } }
-            },
-            {
-                accessorKey: "createdAt",
-                header: "Дата",
-                Cell: ({ cell }) => {
-                    const value = cell.getValue<string>();
-                    return value
-                        ? new Date(value).toLocaleDateString("ru-RU", {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                        })
-                        : "—";
-                }
-            }
-        ];
+    const { defaultMRTOptions, columns } = useTradeTableConfig(isSale);
 
-        if (isSale) {
-            baseColumns.push({
-                accessorKey: "customerName",
-                header: "Покупатель (Клиент)",
-                Cell: ({ cell }) => cell.getValue() || "—"
-            });
-        } else {
-            baseColumns.push(
-                {
-                    accessorKey: "supplierName",
-                    header: "Поставщик",
-                    Cell: ({ cell }) => cell.getValue() || "—"
-                },
-                {
-                    accessorKey: "warehouseName",
-                    header: "Склад поступления",
-                    Cell: ({ cell }) => cell.getValue() || "—"
-                }
-            );
-        }
-
-        baseColumns.push(
-            {
-                accessorKey: "totalAmount",
-                header: "Сумма",
-                Cell: ({ cell }) => {
-                    const value = cell.getValue<number>();
-                    return `${value?.toLocaleString("ru-RU") ?? 0} ₽`;
-                },
-                muiTableBodyCellProps: { sx: { fontWeight: 700, color: isSale ? "#1565C0" : "#137333" } }
-            },
-            {
-                accessorKey: "notes",
-                header: "Примечание",
-                Cell: ({ cell }) => cell.getValue() || "—"
-            }
-        );
-
-        return baseColumns;
-    }, [isSale]);
-
-    // Инициализация MaterialReactTable
     const table = useMaterialReactTable({
+        ...defaultMRTOptions,
         columns,
         data: currentData || [],
-        enableDensityToggle: false,
-        initialState: { density: "comfortable" },
+        enableRowActions: false,
+        enableExpanding: true,
+        muiExpandButtonProps: {
+            sx: { color: "#CB673C" },
+        },
+        muiTableContainerProps: { sx: { height: "65vh" } },
 
-        // Включение функционала раскрывающихся подтаблиц
         renderDetailPanel: ({ row }) => {
-            const items = row.original.items || [];
+            const items: (OrderStructureResponse | SupplierOrderStructureResponse)[] =
+                row.original.items || [];
+
             return (
                 <Paper
                     variant="outlined"
-                    sx={{ p: 2, m: 1, bgcolor: "#FAFAFA", border: "1px dashed #CB673C", borderRadius: "6px" }}
+                    sx={{
+                        p: 2,
+                        m: 1,
+                        bgcolor: "#FAFAFA",
+                        border: "1px dashed #CB673C",
+                        borderRadius: "6px",
+                    }}
                 >
-                    <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 700, color: "#A04E2B" }}>
-                        Состав документа ({isSale ? "Продажа" : "Закупка"})
+                    <Typography
+                        variant="subtitle2"
+                        sx={{ mb: 1.5, fontWeight: 700, color: "#A04E2B" }}
+                    >
+                        Состав документа — {isSale ? "Продажа" : "Закупка"}
+                        <Chip
+                            label={`${items.length} позиц.`}
+                            size="small"
+                            sx={{
+                                ml: 1.5,
+                                bgcolor: "#F5DBCF",
+                                color: "#422112",
+                                fontWeight: 600,
+                                fontSize: "0.7rem",
+                            }}
+                        />
                     </Typography>
+
                     <Table size="small">
                         <TableHead>
-                            <TableRow sx={{ "& th": { fontWeight: 600, color: "#757575", bgcolor: "#F5F5F5" } }}>
+                            <TableRow
+                                sx={{
+                                    "& th": {
+                                        fontWeight: 700,
+                                        color: "#757575",
+                                        bgcolor: "#F5F5F5",
+                                        borderBottom: "2px solid #F5DBCF",
+                                    },
+                                }}
+                            >
+                                <TableCell>#</TableCell>
                                 <TableCell>Наименование товара</TableCell>
                                 <TableCell align="right">Количество</TableCell>
                                 <TableCell align="right">Цена</TableCell>
@@ -143,21 +118,43 @@ export default function TradeJournalPage() {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {items.map((item: any, index: number) => (
-                                <TableRow key={item.id || index} sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
-                                    <TableCell>{item.productName || `Товар (ID: ${item.productId})`}</TableCell>
+                            {items.map((item, index) => (
+                                <TableRow
+                                    key={index}
+                                    sx={{
+                                        "&:last-child td": { border: 0 },
+                                        "&:hover": { bgcolor: "#FFF5F0" },
+                                    }}
+                                >
+                                    <TableCell sx={{ color: "#9e9e9e", width: 40 }}>
+                                        {index + 1}
+                                    </TableCell>
+                                    <TableCell sx={{ fontWeight: 500 }}>
+                                        <pre style={{fontSize: 10}}>{JSON.stringify(items[0], null, 2)}</pre>
+                                    </TableCell>
                                     <TableCell align="right">{item.quantity}</TableCell>
                                     <TableCell align="right">
-                                        {item.price ? `${item.price.toLocaleString("ru-RU")} ₽` : "—"}
+                                        {item.price != null
+                                            ? `${Number(item.price).toLocaleString("ru-RU")} ₽`
+                                            : "—"}
                                     </TableCell>
-                                    <TableCell align="right" sx={{ fontWeight: 600 }}>
-                                        {item.totalPrice ? `${item.totalPrice.toLocaleString("ru-RU")} ₽` : "—"}
+                                    <TableCell
+                                        align="right"
+                                        sx={{ fontWeight: 700, color: isSale ? "#1565C0" : "#137333" }}
+                                    >
+                                        {item.totalPrice != null
+                                            ? `${Number(item.totalPrice).toLocaleString("ru-RU")} ₽`
+                                            : "—"}
                                     </TableCell>
                                 </TableRow>
                             ))}
                             {items.length === 0 && (
                                 <TableRow>
-                                    <TableCell colSpan={4} align="center" sx={{ py: 2, color: "#9e9e9e" }}>
+                                    <TableCell
+                                        colSpan={5}
+                                        align="center"
+                                        sx={{ py: 3, color: "#9e9e9e", fontStyle: "italic" }}
+                                    >
                                         Спецификация документа пуста
                                     </TableCell>
                                 </TableRow>
@@ -167,6 +164,54 @@ export default function TradeJournalPage() {
                 </Paper>
             );
         },
+
+        renderTopToolbarCustomActions: () => (
+            <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+                <ToggleButtonGroup
+                    value={mode}
+                    exclusive
+                    onChange={handleModeChange}
+                    size="small"
+                    sx={{
+                        bgcolor: "background.paper",
+                        "& .MuiToggleButton-root": {
+                            textTransform: "none",
+                            fontWeight: 600,
+                            px: 2.5,
+                            "&.Mui-selected": {
+                                backgroundColor: "#CB673C",
+                                color: "#fff",
+                                "&:hover": { backgroundColor: "#A04E2B" },
+                            },
+                        },
+                    }}
+                >
+                    <ToggleButton value="sale">
+                        <ShoppingCartCheckoutIcon fontSize="small" sx={{ mr: 1 }} />
+                        Продажи
+                    </ToggleButton>
+                    <ToggleButton value="purchase">
+                        <LocalShippingIcon fontSize="small" sx={{ mr: 1 }} />
+                        Закупки
+                    </ToggleButton>
+                </ToggleButtonGroup>
+
+                <Button
+                    variant="contained"
+                    startIcon={<AddCircleOutlineIcon />}
+                    onClick={() => navigate(isSale ? "/trade/sale" : "/trade/purchase")}
+                    sx={{
+                        backgroundColor: "#CB673C",
+                        textTransform: "none",
+                        fontWeight: 600,
+                        boxShadow: "none",
+                        "&:hover": { backgroundColor: "#A04E2B", boxShadow: "none" },
+                    }}
+                >
+                    {isSale ? "Оформить продажу" : "Оформить закупку"}
+                </Button>
+            </Box>
+        ),
     });
 
     if (isLoading) return <Loading />;
@@ -174,65 +219,7 @@ export default function TradeJournalPage() {
 
     return (
         <Layout titlePage="Учёт торговых операций">
-            <Box sx={{ p: 3 }}>
-                {/* Верхняя панель управления */}
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-                    <Box>
-                        <Typography variant="h5" sx={{ fontWeight: 700, color: "#422112" }}>
-                            {isSale ? "Журнал продаж" : "Журнал закупок"}
-                        </Typography>
-                    </Box>
-
-                    <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-                        {/* Переключатель справа сверху */}
-                        <ToggleButtonGroup
-                            value={mode}
-                            exclusive
-                            onChange={handleModeChange}
-                            size="small"
-                            sx={{
-                                bgcolor: "background.paper",
-                                "& .MuiToggleButton-root": {
-                                    textTransform: "none",
-                                    fontWeight: 600,
-                                    px: 2.5,
-                                    "&.Mui-selected": {
-                                        backgroundColor: "#CB673C",
-                                        color: "#fff",
-                                        "&:hover": { backgroundColor: "#A04E2B" }
-                                    }
-                                }
-                            }}
-                        >
-                            <ToggleButton value="sale">
-                                <ShoppingCartCheckoutIcon fontSize="small" sx={{ mr: 1 }} /> Продажи
-                            </ToggleButton>
-                            <ToggleButton value="purchase">
-                                <LocalShippingIcon fontSize="small" sx={{ mr: 1 }} /> Закупки
-                            </ToggleButton>
-                        </ToggleButtonGroup>
-
-                        {/* Кнопка переброса на функцию создания */}
-                        <Button
-                            variant="contained"
-                            startIcon={<AddCircleOutlineIcon />}
-                            onClick={() => navigate(isSale ? "/trade/sale" : "/trade/purchase")}
-                            sx={{
-                                backgroundColor: "#CB673C",
-                                textTransform: "none",
-                                fontWeight: 600,
-                                boxShadow: "none",
-                                "&:hover": { backgroundColor: "#A04E2B", boxShadow: "none" }
-                            }}
-                        >
-                            {isSale ? "Оформить продажу" : "Оформить закупку"}
-                        </Button>
-                    </Box>
-                </Box>
-
-                {/* Вывод таблицы */}
-                <MaterialReactTable table={table} />
-            </Box>
+            <MaterialReactTable table={table} />
         </Layout>
     );
 }
