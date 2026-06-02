@@ -24,6 +24,7 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import PeopleIcon from '@mui/icons-material/People';
 import TrolleyIcon from '@mui/icons-material/Trolley';
+import BarChartIcon from '@mui/icons-material/BarChart';
 
 const drawerWidth = 320;
 
@@ -157,7 +158,11 @@ export default function Sidebar(props: sidebarProps) {
             label: "Сотрудники",
             icon: <PeopleIcon/>,
             enabled: true},
-        {id: 7, path: "/5",
+        {id: 7, path: "/statistics",
+            label: "Статистика",
+            icon: <BarChartIcon/>,
+            enabled: true},
+        {id: 8, path: "/5",
             label: "История",
             icon: <HistoryIcon/>,
             enabled: true},

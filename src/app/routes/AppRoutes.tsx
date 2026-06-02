@@ -8,6 +8,7 @@ import TradePage from "../../pages/Trade/TradePage";
 import PurchasePage from "../../pages/Trade/PurchasePage";
 import TradeJournalPage from "../../pages/Trade/TradeJournalPage";
 import Employees from "../../pages/Employee/Employees";
+import StatisticsPage from "../../pages/Statistics/StatisticsPage";
 
 export default function AppRoutes() {
     return (
@@ -24,6 +25,7 @@ export default function AppRoutes() {
                 <Route path="/trade/purchase" element={<PurchasePage />} />
 
                 <Route path="/employees" element={<Employees />} />
+                <Route path="/statistics" element={<StatisticsPage />} />
             </Routes>
         </BrowserRouter>
     );
