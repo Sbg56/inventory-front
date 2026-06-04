@@ -10,7 +10,6 @@ import {EditSupplierModal} from "./EditSupplierModal";
 import Loading from "../../shared/ui/base/Loading";
 import ErrorBlock from "../../shared/ui/base/ErrorBlock";
 import type { SupplierResponse } from "../../shared/types/supplierTypes";
-import * as React from "react";
 
 export default function SupplierTable() {
     const { useGetAllSuppliers } = useSuppliers();

@@ -1,24 +1,19 @@
 {
   "files": [],
-  "lib": [
-    "dom",
-    "dom.iterable",
-    "esnext"
-  ],
   "references": [
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.node.json" }
   ],
-  "allowJS": true,
-  "jsx": "react-jsx",
-  "resolveJsonModule": true,
-  "forceConsistentCasingInFileName": true,
-  "noFallthroughCaseInSwitch": true,
   "include": [
     "src"
   ],
   "compilerOptions": {
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
     "jsx": "react-jsx",
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
     "strict": true
   }
 }

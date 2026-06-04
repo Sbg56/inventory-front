@@ -5,6 +5,7 @@ import type { CategoryRequest } from "../../../shared/types/categoryTypes";
 export const useCategories = () => {
     const queryClient = useQueryClient();
 
+
     const useGetAllCategories = () => {
         return useQuery({
             queryKey: ['categories-all'],
@@ -12,6 +13,7 @@ export const useCategories = () => {
                 const response = await categoryApi.getAllCategories();
                 return response.data;
             },
+            select: (data) => Array.isArray(data) ? data : [],
             refetchOnWindowFocus: false,
             refetchOnMount: false,
         });

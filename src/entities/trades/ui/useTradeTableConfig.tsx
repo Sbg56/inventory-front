@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import type { MRT_ColumnDef } from "material-react-table";
-import { getDefaultMRTOptions } from "../../../../../../Downloads/inventory-front-fixed/inventory-front-fixed/src/shared/utils/defaultTableOptions";
-import type { OrderResponse, SupplierOrderResponse } from "../../../../../../Downloads/inventory-front-fixed/inventory-front-fixed/src/shared/types/tradeTypes";
+import type {OrderResponse, SupplierOrderResponse} from "../../../shared/types/tradeTypes";
+import {getDefaultMRTOptions} from "../../../shared/utils/defaultTableOptions";
 
 type TradeRow = OrderResponse | SupplierOrderResponse;
 

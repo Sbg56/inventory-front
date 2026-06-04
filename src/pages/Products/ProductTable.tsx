@@ -234,7 +234,7 @@ export default function ProductTable(): JSX.Element {
                         </Typography>
                     </Box>
 
-                    {categories.map((category) => {
+                    {(Array.isArray(categories) ? categories : []).map((category) => {
                         const isSelected = category.id === currentCatId;
                         return (
                             <MenuItem
