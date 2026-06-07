@@ -12,6 +12,7 @@ import { useEmployees } from "../../entities/employees/model/useEmployees";
 import { useEmployeesTableConfig } from "../../entities/employees/ui/useEmployeesTableConfig";
 import CreateEmployeeModal from "./CreateEmployeeModal";
 import EditEmployeeModal from "./EditEmployeeModal";
+import { usePermissions } from "../../shared/auth/usePermissions";
 
 const EmployeeRowActions = ({
                                 employee,
@@ -24,6 +25,7 @@ const EmployeeRowActions = ({
 }) => {
     const { useDeactivateEmployee } = useEmployees();
     const deactivateMutation = useDeactivateEmployee();
+    const { canEdit, canDelete } = usePermissions();
 
     const handleDeactivate = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -35,28 +37,32 @@ const EmployeeRowActions = ({
 
     return (
         <Box sx={{ display: "flex", gap: 0.5 }}>
-            <Tooltip title="Редактировать" arrow>
-                <IconButton
-                    onClick={(e) => { e.stopPropagation(); onEdit(); }}
-                    size="small"
-                    sx={{ color: "#CB673C", "&:hover": { backgroundColor: "rgba(203, 103, 60, 0.08)" } }}
-                >
-                    <EditIcon fontSize="small" />
-                </IconButton>
-            </Tooltip>
-            <Tooltip title={employee.isActive ? "Деактивировать" : "Уже неактивен"} arrow>
-                <span>
+            {canEdit && (
+                <Tooltip title="Редактировать" arrow>
                     <IconButton
-                        onClick={handleDeactivate}
+                        onClick={(e) => { e.stopPropagation(); onEdit(); }}
                         size="small"
-                        color="error"
-                        disabled={deactivateMutation.isPending || !employee.isActive}
-                        sx={{ "&:hover": { backgroundColor: "rgba(211, 47, 47, 0.08)" } }}
+                        sx={{ color: "#CB673C", "&:hover": { backgroundColor: "rgba(203, 103, 60, 0.08)" } }}
                     >
-                        <PersonOffIcon fontSize="small" />
+                        <EditIcon fontSize="small" />
                     </IconButton>
-                </span>
-            </Tooltip>
+                </Tooltip>
+            )}
+            {canDelete && (
+                <Tooltip title={employee.isActive ? "Деактивировать" : "Уже неактивен"} arrow>
+                    <span>
+                        <IconButton
+                            onClick={handleDeactivate}
+                            size="small"
+                            color="error"
+                            disabled={deactivateMutation.isPending || !employee.isActive}
+                            sx={{ "&:hover": { backgroundColor: "rgba(211, 47, 47, 0.08)" } }}
+                        >
+                            <PersonOffIcon fontSize="small" />
+                        </IconButton>
+                    </span>
+                </Tooltip>
+            )}
         </Box>
     );
 };
@@ -73,6 +79,7 @@ export default function EmployeeTable(): JSX.Element {
     const { data: employeesData, isLoading, isError, error } = useGetAllEmployees();
 
     const { columns, defaultMRTOptions } = useEmployeesTableConfig();
+    const { canCreate, canEdit } = usePermissions();
 
     const showNotification = (msg: string, severity: "success" | "error") => {
         setSnackbarMessage(msg);
@@ -84,7 +91,7 @@ export default function EmployeeTable(): JSX.Element {
         ...defaultMRTOptions,
         columns,
         data: employeesData || [],
-        enableRowActions: true,
+        enableRowActions: canEdit,
         positionActionsColumn: "last",
         displayColumnDefOptions: {
             "mrt-row-actions": { header: "Действие", size: 100 },
@@ -100,14 +107,16 @@ export default function EmployeeTable(): JSX.Element {
             />
         ),
         renderTopToolbarCustomActions: () => (
-            <Tooltip title="Добавить сотрудника" arrow>
-                <IconButton
-                    onClick={() => setIsCreateModalOpen(true)}
-                    sx={{ backgroundColor: "transparent", boxShadow: "none" }}
-                >
-                    <PlaylistAddIcon sx={{ fontSize: 28 }} />
-                </IconButton>
-            </Tooltip>
+            canCreate ? (
+                <Tooltip title="Добавить сотрудника" arrow>
+                    <IconButton
+                        onClick={() => setIsCreateModalOpen(true)}
+                        sx={{ backgroundColor: "transparent", boxShadow: "none" }}
+                    >
+                        <PlaylistAddIcon sx={{ fontSize: 28 }} />
+                    </IconButton>
+                </Tooltip>
+            ) : null
         ),
         muiTableContainerProps: { sx: { height: "75vh" } },
     });

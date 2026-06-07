@@ -6,6 +6,7 @@ import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useWarehouses } from "../../entities/warehouseApi/model/useWarehouses";
+import { usePermissions } from '../../shared/auth/usePermissions';
 import { useWarehousesTableConfig } from "../../entities/warehouseApi/ui/useWarehousesTableConfig";
 import Loading from "../../shared/ui/base/Loading";
 import ErrorBlock from "../../shared/ui/base/ErrorBlock";
@@ -24,6 +25,7 @@ const WarehouseRowActions = ({
 }) => {
     const { useDeleteWarehouse } = useWarehouses();
     const deleteMutation = useDeleteWarehouse();
+    const { canEdit, canDelete } = usePermissions();
 
     const handleDelete = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -35,26 +37,30 @@ const WarehouseRowActions = ({
 
     return (
         <Box sx={{ display: "flex", gap: 0.5 }}>
-            <Tooltip title="Редактировать" arrow>
-                <IconButton
-                    onClick={(e) => { e.stopPropagation(); onEdit(); }}
-                    size="small"
-                    sx={{ color: "#CB673C", "&:hover": { backgroundColor: "rgba(203, 103, 60, 0.08)" } }}
-                >
-                    <EditIcon fontSize="small" />
-                </IconButton>
-            </Tooltip>
-            <Tooltip title="Удалить" arrow>
-                <IconButton
-                    onClick={handleDelete}
-                    size="small"
-                    color="error"
-                    disabled={deleteMutation.isPending}
-                    sx={{ "&:hover": { backgroundColor: "rgba(211, 47, 47, 0.08)" } }}
-                >
-                    <DeleteIcon fontSize="small" />
-                </IconButton>
-            </Tooltip>
+            {canEdit && (
+                <Tooltip title="Редактировать" arrow>
+                    <IconButton
+                        onClick={(e) => { e.stopPropagation(); onEdit(); }}
+                        size="small"
+                        sx={{ color: "#CB673C", "&:hover": { backgroundColor: "rgba(203, 103, 60, 0.08)" } }}
+                    >
+                        <EditIcon fontSize="small" />
+                    </IconButton>
+                </Tooltip>
+            )}
+            {canDelete && (
+                <Tooltip title="Удалить" arrow>
+                    <IconButton
+                        onClick={handleDelete}
+                        size="small"
+                        color="error"
+                        disabled={deleteMutation.isPending}
+                        sx={{ "&:hover": { backgroundColor: "rgba(211, 47, 47, 0.08)" } }}
+                    >
+                        <DeleteIcon fontSize="small" />
+                    </IconButton>
+                </Tooltip>
+            )}
         </Box>
     );
 };
@@ -71,6 +77,7 @@ export default function WarehouseTable(): JSX.Element {
     const { data: warehousesData, isLoading, isError, error } = useGetAllWarehouses();
 
     const { columns, defaultMRTOptions } = useWarehousesTableConfig();
+    const { canCreate, canEdit } = usePermissions();
 
     const showNotification = (msg: string, severity: "success" | "error") => {
         setSnackbarMessage(msg);
@@ -82,7 +89,7 @@ export default function WarehouseTable(): JSX.Element {
         ...defaultMRTOptions,
         columns,
         data: warehousesData || [],
-        enableRowActions: true,
+        enableRowActions: canEdit,
         positionActionsColumn: "last",
         displayColumnDefOptions: {
             "mrt-row-actions": { header: "Действие", size: 100 },
@@ -98,14 +105,16 @@ export default function WarehouseTable(): JSX.Element {
             />
         ),
         renderTopToolbarCustomActions: () => (
-            <Tooltip title="Добавить склад" arrow>
-                <IconButton
-                    onClick={() => setIsCreateModalOpen(true)}
-                    sx={{ backgroundColor: "transparent", boxShadow: "none" }}
-                >
-                    <PlaylistAddIcon sx={{ fontSize: 28 }} />
-                </IconButton>
-            </Tooltip>
+            canCreate ? (
+                <Tooltip title="Добавить склад" arrow>
+                    <IconButton
+                        onClick={() => setIsCreateModalOpen(true)}
+                        sx={{ backgroundColor: "transparent", boxShadow: "none" }}
+                    >
+                        <PlaylistAddIcon sx={{ fontSize: 28 }} />
+                    </IconButton>
+                </Tooltip>
+            ) : null
         ),
         muiTableContainerProps: { sx: { height: "75vh" } },
     });

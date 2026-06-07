@@ -12,6 +12,7 @@ import Loading from "../../shared/ui/base/Loading";
 import {useStockMovements} from "../../entities/stockMovement/model/useStockMovements";
 import {useStockMovementTableConfig} from "../../entities/stockMovement/ui/useStockMovementTableConfig";
 import ErrorBlock from "../../shared/ui/base/ErrorBlock";
+import { usePermissions } from "../../shared/auth/usePermissions";
 
 export function StockMovementTable() {
     const [selectedCategoryId, setSelectedCategoryId] = useState<number | "">("");
@@ -31,6 +32,7 @@ export function StockMovementTable() {
     const {data: movements = [], isLoading: isMovementsLoading, isError, error} = useGetMovementsByProduct(selectedProductId);
 
     const {columns, defaultMRTOptions} = useStockMovementTableConfig();
+    const { canCreate } = usePermissions();
 
     useEffect(() => {
         setSelectedProductId(null);
@@ -45,20 +47,22 @@ export function StockMovementTable() {
         },
         enableRowActions: false,
         renderTopToolbarCustomActions: () => (
-            <Button
-                variant="contained"
-                startIcon={<CompareArrowsIcon/>}
-                onClick={() => setIsCreateModalOpen(true)}
-                disabled={!selectedProductId}
-                sx={{
-                    backgroundColor: "#CB673C",
-                    textTransform: "none",
-                    fontWeight: 600,
-                    "&:hover": {backgroundColor: "#A04E2B"}
-                }}
-            >
-                Новое движение
-            </Button>
+            canCreate ? (
+                <Button
+                    variant="contained"
+                    startIcon={<CompareArrowsIcon/>}
+                    onClick={() => setIsCreateModalOpen(true)}
+                    disabled={!selectedProductId}
+                    sx={{
+                        backgroundColor: "#CB673C",
+                        textTransform: "none",
+                        fontWeight: 600,
+                        "&:hover": {backgroundColor: "#A04E2B"}
+                    }}
+                >
+                    Новое движение
+                </Button>
+            ) : null
         ),
     });
 

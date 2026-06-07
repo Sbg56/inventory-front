@@ -4,6 +4,7 @@ import {Box, IconButton, Tooltip, Typography} from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
 import { useSuppliers } from "../../entities/suppliers/model/useSuppliers";
+import { usePermissions } from '../../shared/auth/usePermissions';
 import { useSuppliersTableConfig } from "../../entities/suppliers/ui/useSuppliersTableConfig";
 import CreateSupplierModal from "./CreateSupplierModal";
 import {EditSupplierModal} from "./EditSupplierModal";
@@ -18,6 +19,7 @@ export default function SupplierTable() {
 
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [editingSupplier, setEditingSupplier] = useState<SupplierResponse | null>(null);
+    const { canCreate, canEdit } = usePermissions();
 
     const table = useMaterialReactTable({
         ...defaultMRTOptions,
@@ -26,27 +28,31 @@ export default function SupplierTable() {
         state: {
             isLoading,
         },
-        enableRowActions: true,
+        enableRowActions: canEdit,
         positionActionsColumn: "last",
         renderRowActions: ({ row }) => (
-            <Box sx={{ display: "flex", gap: "8px" }}>
-                <Tooltip title="Редактировать">
-                    <IconButton
-                        onClick={() => setEditingSupplier(row.original)}
-                        sx={{ color: "#757575", "&:hover": { color: "#CB673C" } }}
-                    >
-                        <EditIcon />
-                    </IconButton>
-                </Tooltip>
-            </Box>
+            canEdit ? (
+                <Box sx={{ display: "flex", gap: "8px" }}>
+                    <Tooltip title="Редактировать">
+                        <IconButton
+                            onClick={() => setEditingSupplier(row.original)}
+                            sx={{ color: "#757575", "&:hover": { color: "#CB673C" } }}
+                        >
+                            <EditIcon />
+                        </IconButton>
+                    </Tooltip>
+                </Box>
+            ) : null
         ),
         renderTopToolbarCustomActions: () => (
-            <IconButton
-                onClick={() => setIsCreateModalOpen(true)}
-                sx={{ backgroundColor: "transparent", boxShadow: "none" }}
-            >
-                <PlaylistAddIcon sx={{ fontSize: 28 }} />
-            </IconButton>
+            canCreate ? (
+                <IconButton
+                    onClick={() => setIsCreateModalOpen(true)}
+                    sx={{ backgroundColor: "transparent", boxShadow: "none" }}
+                >
+                    <PlaylistAddIcon sx={{ fontSize: 28 }} />
+                </IconButton>
+            ) : null
         ),
     });
 

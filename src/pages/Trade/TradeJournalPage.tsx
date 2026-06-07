@@ -23,6 +23,7 @@ import ShoppingCartCheckoutIcon from "@mui/icons-material/ShoppingCartCheckout";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 
 import Layout from "../../shared/ui/layout/Layout";
+import { usePermissions } from "../../shared/auth/usePermissions";
 import { useTrade } from "../../entities/trades/model/useTrade";
 import { useTradeTableConfig } from "../../entities/trades/ui/useTradeTableConfig";
 import Loading from "../../shared/ui/base/Loading";
@@ -37,6 +38,7 @@ type TradeMode = "sale" | "purchase";
 export default function TradeJournalPage() {
     const navigate = useNavigate();
     const [mode, setMode] = useState<TradeMode>("sale");
+    const { canCreate } = usePermissions();
 
     const { useGetOrders, useGetSupplierOrders } = useTrade();
 
@@ -196,20 +198,22 @@ export default function TradeJournalPage() {
                     </ToggleButton>
                 </ToggleButtonGroup>
 
-                <Button
-                    variant="contained"
-                    startIcon={<AddCircleOutlineIcon />}
-                    onClick={() => navigate(isSale ? "/trade/sale" : "/trade/purchase")}
-                    sx={{
-                        backgroundColor: "#CB673C",
-                        textTransform: "none",
-                        fontWeight: 600,
-                        boxShadow: "none",
-                        "&:hover": { backgroundColor: "#A04E2B", boxShadow: "none" },
-                    }}
-                >
-                    {isSale ? "Оформить продажу" : "Оформить закупку"}
-                </Button>
+                {canCreate && (
+                    <Button
+                        variant="contained"
+                        startIcon={<AddCircleOutlineIcon />}
+                        onClick={() => navigate(isSale ? "/trade/sale" : "/trade/purchase")}
+                        sx={{
+                            backgroundColor: "#CB673C",
+                            textTransform: "none",
+                            fontWeight: 600,
+                            boxShadow: "none",
+                            "&:hover": { backgroundColor: "#A04E2B", boxShadow: "none" },
+                        }}
+                    >
+                        {isSale ? "Оформить продажу" : "Оформить закупку"}
+                    </Button>
+                )}
             </Box>
         ),
     });

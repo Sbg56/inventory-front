@@ -25,6 +25,10 @@ import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import PeopleIcon from '@mui/icons-material/People';
 import TrolleyIcon from '@mui/icons-material/Trolley';
 import BarChartIcon from '@mui/icons-material/BarChart';
+import { useKeycloak } from '@react-keycloak/web';
+import LogoutIcon from '@mui/icons-material/Logout';
+import Divider from '@mui/material/Divider';
+import { useRole, type UserRole } from '../../shared/auth/useRole';
 
 const drawerWidth = 320;
 
@@ -58,7 +62,6 @@ export const DrawerHeader = styled('div')(({theme}) => ({
     alignItems: 'center',
     justifyContent: 'flex-end',
     padding: theme.spacing(0, 1),
-    // necessary for content to be below app bar
     ...theme.mixins.toolbar,
 }));
 
@@ -95,7 +98,6 @@ const Drawer = styled(MuiDrawer, {shouldForwardProp: (prop) => prop !== 'open'})
         flexShrink: 0,
         whiteSpace: 'nowrap',
         boxSizing: 'border-box',
-
         variants: [
             {
                 props: ({open}) => open,
@@ -115,9 +117,18 @@ const Drawer = styled(MuiDrawer, {shouldForwardProp: (prop) => prop !== 'open'})
     }),
 );
 
+/** Пункт меню с ограничением по ролям */
+interface MenuItemDef {
+    id: number;
+    path: string;
+    label: string;
+    icon: React.ReactNode;
+    enabled: boolean;
+    /** Если задано — пункт виден только пользователям с этими ролями */
+    allowedRoles?: UserRole[];
+}
 
-
-const bottomMenuItems: bottomMenuItems[] = [
+const bottomMenuItemsList: bottomMenuItems[] = [
     {id: 1, path: "/about", label: "Справка", icon: <InfoIcon/>},
 ]
 
@@ -126,6 +137,14 @@ export default function Sidebar(props: sidebarProps) {
     const theme = useTheme();
     const location = useLocation();
     const [isMenuOpen, setIsMenuOpen] = useLocalStorage<boolean>('isMenuOpen', false);
+    const { hasRole } = useRole();
+    const { keycloak } = useKeycloak();
+
+    const username = keycloak.tokenParsed?.preferred_username as string | undefined;
+
+    const handleLogout = () => {
+        keycloak.logout({ redirectUri: window.location.origin });
+    };
 
     const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
@@ -133,40 +152,64 @@ export default function Sidebar(props: sidebarProps) {
 
     const isActive = (path: string) => location.pathname === path;
 
-    const topMenuItem: topMenuItems[] = [
-        {id: 1, path: "/trade",
+    const allMenuItems: MenuItemDef[] = [
+        {
+            id: 1, path: "/trade",
             label: "Учёт",
             icon: <DescriptionIcon/>,
-            enabled: true},
-        {id: 2, path: "/",
+            enabled: true,
+            // Доступно всем
+        },
+        {
+            id: 2, path: "/",
             label: "Товары",
             icon: <CategoryIcon/>,
-            enabled: true},
-        {id: 3, path: "/warehouses",
+            enabled: true,
+        },
+        {
+            id: 3, path: "/warehouses",
             label: "Склады",
             icon: <WarehouseIcon/>,
-            enabled: true},
-        {id: 4, path: "/stockMovement",
+            enabled: true,
+        },
+        {
+            id: 4, path: "/stockMovement",
             label: "Движение товаров",
             icon: <TrolleyIcon/>,
-            enabled: true},
-        {id: 5, path: "/suppliers",
+            enabled: true,
+        },
+        {
+            id: 5, path: "/suppliers",
             label: "Поставщики",
             icon: <LocalShippingIcon/>,
-            enabled: true},
-        {id: 6, path: "/employees",
+            enabled: true,
+        },
+        {
+            id: 6, path: "/employees",
             label: "Сотрудники",
             icon: <PeopleIcon/>,
-            enabled: true},
-        {id: 7, path: "/statistics",
+            enabled: true,
+            allowedRoles: ["ADMIN"],          // только ADMIN
+        },
+        {
+            id: 7, path: "/statistics",
             label: "Статистика",
             icon: <BarChartIcon/>,
-            enabled: true},
-        {id: 8, path: "/5",
+            enabled: true,
+            allowedRoles: ["ADMIN", "MANAGER"], // ADMIN и MANAGER
+        },
+        {
+            id: 8, path: "/5",
             label: "История",
             icon: <HistoryIcon/>,
-            enabled: true},
-    ]
+            enabled: true,
+        },
+    ];
+
+    // Фильтруем пункты меню по роли пользователя
+    const topMenuItem = allMenuItems.filter((item) =>
+        !item.allowedRoles || hasRole(...item.allowedRoles)
+    );
 
     return (
         <Box sx={{display: 'flex'}}>
@@ -265,12 +308,13 @@ export default function Sidebar(props: sidebarProps) {
                         </List>
                     </Box>
                     <Box>
+                        <Divider />
                         <List
                             sx={{width: '100%', bgcolor: 'background.paper'}}
                             component="nav"
                             aria-labelledby="nested-list-subheader"
                         >
-                            {bottomMenuItems.map((item) => {
+                            {bottomMenuItemsList.map((item) => {
                                 const selected = isActive(item.path)
                                 return (
                                     <ListItem key={item.id} disablePadding
@@ -286,6 +330,39 @@ export default function Sidebar(props: sidebarProps) {
                                     </ListItem>
                                 )
                             })}
+
+                            {/* Имя пользователя */}
+                            {isMenuOpen && username && (
+                                <ListItem sx={{ px: 2.5, py: 0.5 }}>
+                                    <ListItemText
+                                        primary={username}
+                                        slotProps={{
+                                            primary: {
+                                                variant: 'caption',
+                                                sx: { color: 'text.secondary', fontWeight: 500 }
+                                            }
+                                        }}
+                                    />
+                                </ListItem>
+                            )}
+
+                            {/* Кнопка выхода */}
+                            <ListItem disablePadding>
+                                <ListItemButton
+                                    onClick={handleLogout}
+                                    sx={{
+                                        minHeight: 48,
+                                        px: 2.5,
+                                        color: 'error.main',
+                                        '&:hover': { backgroundColor: 'rgba(211, 47, 47, 0.08)' },
+                                    }}
+                                >
+                                    <ListItemIcon sx={{ color: 'error.main' }}>
+                                        <LogoutIcon />
+                                    </ListItemIcon>
+                                    <ListItemText primary="Выйти" />
+                                </ListItemButton>
+                            </ListItem>
                         </List>
                     </Box>
                 </Box>

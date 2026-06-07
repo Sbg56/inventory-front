@@ -1,6 +1,7 @@
 import { type JSX } from "react";
 import { MaterialReactTable, useMaterialReactTable } from "material-react-table";
 import { useGetProducts } from "../../entities/products/model/useGetProducts";
+import { usePermissions } from '../../shared/auth/usePermissions';
 import { useProductsTableConfig } from "../../entities/products/ui/useProductsTableConfig";
 import Loading from "../../shared/ui/base/Loading";
 import ErrorBlock from "../../shared/ui/base/ErrorBlock";
@@ -32,6 +33,7 @@ const ProductRowActions = ({
 }) => {
     const { useUpdateProduct } = useGetProducts();
     const updateMutation = useUpdateProduct(product.id);
+    const { canEdit, canDelete } = usePermissions();
 
     const handleDelete = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -48,30 +50,34 @@ const ProductRowActions = ({
 
     return (
         <Box sx={{ display: 'flex', gap: 0.5 }}>
-            <Tooltip title="Редактировать" arrow>
-                <IconButton
-                    onClick={(e) => {
-                        e.stopPropagation()
-                        onEdit();
-                    }}
-                    size="small"
-                    sx={{ color: '#CB673C', '&:hover': { backgroundColor: 'rgba(203, 103, 60, 0.08)' } }}
-                >
-                    <EditIcon fontSize="small" />
-                </IconButton>
-            </Tooltip>
+            {canEdit && (
+                <Tooltip title="Редактировать" arrow>
+                    <IconButton
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            onEdit();
+                        }}
+                        size="small"
+                        sx={{ color: '#CB673C', '&:hover': { backgroundColor: 'rgba(203, 103, 60, 0.08)' } }}
+                    >
+                        <EditIcon fontSize="small" />
+                    </IconButton>
+                </Tooltip>
+            )}
 
-            <Tooltip title={product.isActive ? "Удалить (Деактивировать)" : "Товар уже неактивен"} arrow>
-                <IconButton
-                    onClick={handleDelete}
-                    size="small"
-                    color="error"
-                    disabled={!product.isActive}
-                    sx={{ '&:hover': { backgroundColor: 'rgba(211, 47, 47, 0.08)' } }}
-                >
-                    <DeleteIcon fontSize="small" />
-                </IconButton>
-            </Tooltip>
+            {canDelete && (
+                <Tooltip title={product.isActive ? "Удалить (Деактивировать)" : "Товар уже неактивен"} arrow>
+                    <IconButton
+                        onClick={handleDelete}
+                        size="small"
+                        color="error"
+                        disabled={!product.isActive}
+                        sx={{ '&:hover': { backgroundColor: 'rgba(211, 47, 47, 0.08)' } }}
+                    >
+                        <DeleteIcon fontSize="small" />
+                    </IconButton>
+                </Tooltip>
+            )}
         </Box>
     );
 };
@@ -85,6 +91,7 @@ export default function ProductTable(): JSX.Element {
     const isMenuOpen = Boolean(anchorEl);
     const [isCreateCategoryModalOpen, setIsCreateCategoryModalOpen] = useState(false);
     const { columns, defaultMRTOptions } = useProductsTableConfig();
+    const { canCreate, canEdit, canDelete } = usePermissions();
     const navigate = useNavigate();
     const [currentCatId, setCurrentCatId] = useState<number>(4);
 
@@ -209,14 +216,16 @@ export default function ProductTable(): JSX.Element {
                     </IconButton>
                 </Tooltip>
 
-                <Tooltip title="Добавить продукт" arrow>
-                    <IconButton
-                        onClick={() => setIsCreateModalOpen(true)}
-                        sx={{ backgroundColor: 'transparent', boxShadow: 'none' }}
-                    >
-                        <PlaylistAddIcon sx={{ fontSize: 28 }} />
-                    </IconButton>
-                </Tooltip>
+                {canCreate && (
+                    <Tooltip title="Добавить продукт" arrow>
+                        <IconButton
+                            onClick={() => setIsCreateModalOpen(true)}
+                            sx={{ backgroundColor: 'transparent', boxShadow: 'none' }}
+                        >
+                            <PlaylistAddIcon sx={{ fontSize: 28 }} />
+                        </IconButton>
+                    </Tooltip>
+                )}
 
                 <Menu
                     anchorEl={anchorEl}
@@ -255,16 +264,18 @@ export default function ProductTable(): JSX.Element {
                     })}
 
                     <Divider sx={{ my: 1 }} />
-                    <MenuItem
-                        onClick={handleOpenCategoryModal}
-                        sx={{
-                            fontSize: '14px', mx: 0.5, mb: 0.5, borderRadius: '6px',
-                            color: '#CB673C', fontWeight: 'bold', justifyContent: 'center',
-                            '&:hover': { backgroundColor: 'rgba(203, 103, 60, 0.08)' }
-                        }}
-                    >
-                        + Добавить категорию
-                    </MenuItem>
+                    {canCreate && (
+                        <MenuItem
+                            onClick={handleOpenCategoryModal}
+                            sx={{
+                                fontSize: '14px', mx: 0.5, mb: 0.5, borderRadius: '6px',
+                                color: '#CB673C', fontWeight: 'bold', justifyContent: 'center',
+                                '&:hover': { backgroundColor: 'rgba(203, 103, 60, 0.08)' }
+                            }}
+                        >
+                            + Добавить категорию
+                        </MenuItem>
+                    )}
                 </Menu>
             </Box>
         ),
