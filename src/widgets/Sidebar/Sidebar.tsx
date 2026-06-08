@@ -14,7 +14,7 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import ListSubheader from '@mui/material/ListSubheader';
-import type {topMenuItems, bottomMenuItems} from "./sidebarMenuType.ts";
+import type {bottomMenuItems} from "./sidebarMenuType.ts";
 import HistoryIcon from '@mui/icons-material/History';
 import InfoIcon from '@mui/icons-material/Info';
 import {useLocalStorage} from "../../shared/hook/useLocalStorage";
@@ -199,7 +199,7 @@ export default function Sidebar(props: sidebarProps) {
             allowedRoles: ["ADMIN", "MANAGER"], // ADMIN и MANAGER
         },
         {
-            id: 8, path: "/5",
+            id: 8, path: "/history",
             label: "История",
             icon: <HistoryIcon/>,
             enabled: true,
