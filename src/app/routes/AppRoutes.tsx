@@ -9,7 +9,7 @@ import PurchasePage from "../../pages/Trade/PurchasePage";
 import TradeJournalPage from "../../pages/Trade/TradeJournalPage";
 import Employees from "../../pages/Employee/Employees";
 import StatisticsPage from "../../pages/Statistics/StatisticsPage";
-import HistoryPage from "../../pages/History/HistoryPage";          // ← новый
+import HistoryPage from "../../pages/History/HistoryPage";
 import ProtectedRoute from "./ProtectedRoute";
 
 export default function AppRoutes() {
