@@ -42,7 +42,7 @@ function Row({ row, mode }: { row: OrderResponse | SupplierOrderResponse; mode: 
                     documentNumber: saleRow.documentNumber,
                     orderDate: formattedDate,
                     customerName: saleRow.customerName ?? "",
-                    status: "",
+                    status: saleRow.status ?? "",
                     notes: saleRow.notes ?? "",
                     totalAmount: saleRow.totalAmount,
                     items: (saleRow.items ?? []).map((item: any) => ({
@@ -60,12 +60,14 @@ function Row({ row, mode }: { row: OrderResponse | SupplierOrderResponse; mode: 
                 const request = {
                     documentNumber: purchaseRow.documentNumber,
                     orderDate: formattedDate,
-                    expectedDeliveryDate: "",
+                    expectedDeliveryDate: purchaseRow.expectedDeliveryDate
+                        ? new Date(purchaseRow.expectedDeliveryDate).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" })
+                        : "",
                     supplierName: purchaseRow.supplierName ?? "",
-                    supplierContactPerson: "",
-                    supplierPhone: "",
+                    supplierContactPerson: purchaseRow.supplierContactPerson ?? "",
+                    supplierPhone: purchaseRow.supplierPhone ?? "",
                     warehouseName: purchaseRow.warehouseName ?? "",
-                    warehouseAddress: "",
+                    warehouseAddress: purchaseRow.warehouseAddress ?? "",
                     status: purchaseRow.status ?? "",
                     notes: purchaseRow.notes ?? "",
                     totalAmount: purchaseRow.totalAmount,

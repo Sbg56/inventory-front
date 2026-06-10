@@ -1,4 +1,3 @@
-
 export interface OrderStructureRequest {
     productId: number;
     quantity: number;
@@ -22,6 +21,7 @@ export interface OrderRequest {
 }
 
 export interface OrderResponse {
+    status?: string;
     id: number;
     documentNumber: string;
     customerName?: string;
@@ -49,6 +49,8 @@ export interface SupplierOrderRequest {
 export interface SupplierOrderStructureResponse {
     productId: number;
     productName: string;
+    sku?: string;
+    unit?: string;
     quantity: number;
     price: number;
     totalPrice: number;
@@ -57,12 +59,17 @@ export interface SupplierOrderStructureResponse {
 export interface SupplierOrderResponse {
     id: number;
     supplierName?: string;
+    supplierContactPerson?: string;
+    supplierPhone?: string;
     warehouseName?: string;
+    warehouseAddress?: string;
     warehouseId?: number;
     documentNumber: string;
     totalAmount: number;
     status?: string;
     notes?: string;
     items: SupplierOrderStructureResponse[];
+    orderDate?: string;
+    expectedDeliveryDate?: string;
     createdAt?: string;
 }

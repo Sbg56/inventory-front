@@ -19,9 +19,8 @@ export const reportApi = {
 
 export function openPdfBlob(blob: Blob, filename: string) {
     const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    link.click();
-    URL.revokeObjectURL(url);
+    const win = window.open(url, "_blank");
+    if (win) {
+        win.addEventListener("load", () => URL.revokeObjectURL(url), { once: true });
+    }
 }
